@@ -1,4 +1,6 @@
 const express = require("express");
+const bodyParser = require('body-parser');
+
 const app = express();
 const router = express.Router();
 
@@ -23,9 +25,13 @@ router.get("/sharks",function(req,res){
   res.sendFile(path + "sharks.html");
 });
 
+app.use(bodyParser.urlencoded({
+    extended: true
+}))
+app.use(bodyParser.json())
+
 app.use(express.static(path));
 app.use('/', router);
-
 app.use('/api/v1', api);
 
 app.listen(PORT, function () {
