@@ -1,15 +1,21 @@
 const express = require('express');
 const translate = require('@vitalets/google-translate-api');
+const ISO6391 = require('iso-639-1');
 
 const router = express.Router();
 
 router.post('/', async (req, res) => {
+
 	console.log(req.body);
-	console.log(req.body.queryResult.queryText);
 	let result = {};
+	let langTo = ISO6391.getAllCodes().includes(req.body.queryResult.parameters.language)
+		? req.body.queryResult.parameters.language : null;
 
 	try {
-		result = await translate(req.body.queryResult.queryText, {to: 'en'});
+		result = await translate(
+			req.body.queryResult.parameters.text,
+			{to: langTo}
+		);
 	    console.log('result');
 	    console.log(result);
 	} catch(err) {
