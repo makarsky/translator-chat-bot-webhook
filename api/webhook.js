@@ -4,6 +4,7 @@ const translate = require('@vitalets/google-translate-api');
 const ISO6391 = require('iso-639-1');
 const fetch = require('node-fetch');
 const redis = require('redis');
+const availableLanguages = require('./availableLanguages');
 
 const router = express.Router();
 
@@ -11,17 +12,11 @@ const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
-const languagesWithCodes = [
-	{ code: 'be', name: 'Беларуская мова' },
-	{ code: 'en', name: 'English' },
-	{ code: 'ru', name: 'Русский' },
-];
-
 const buildLanguageCodeReplyOptions = (excludedLanguageCode) => {
 	return {
 		reply_markup: {
 			inline_keyboard: [
-				languagesWithCodes
+				availableLanguages
 					.filter((l) => l.code !== excludedLanguageCode)
 					.map((l) => ({
 						text: l.name,
@@ -38,24 +33,6 @@ const redisClient = redis.createClient({
 });
 redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
 redisClient.connect();
-
-router.get('/test-redis', async (req, res) => {
-	await redisClient.set('key2', 'value2');
-	const value = await redisClient.get('key2');
-	console.log(value);
-
-	res.json({
-		"fulfillmentMessages": [
-			{
-				"text": {
-					"text": [
-						// value
-					]
-				}
-			}
-		],
-	});
-});
 
 router.get('/test', async (req, res) => {
 	let codes = ISO6391.getAllCodes();
@@ -152,19 +129,6 @@ bot.on('callback_query', async (callback) => {
 	}
 
 	// TODO: more translations selected callback
-});
-
-bot.onText(/\/set_language (.+)/, (message, match) => {
-	console.log('\/set_language smth');
-	console.log(match);
-
-	const chatId = message.chat.id;
-	const targetLanguage = match[1];
-
-	// await redisClient.set(`${chatId}`, targetLanguage);
-	// await redisClient.hSet(`${chatId}`, 'field', Buffer.from('value'));
-
-	bot.sendMessage(chatId, targetLanguage);
 });
 
 bot.on('message', async (message) => {
