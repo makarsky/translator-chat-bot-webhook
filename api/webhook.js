@@ -5,24 +5,32 @@ const ISO6391 = require('iso-639-1');
 const fetch = require('node-fetch');
 const redis = require('redis');
 const availableLanguages = require('./availableLanguages');
+const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 
 const router = express.Router();
 
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
+const maxNumberOfInlineButtons = 8;
+
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
-const buildLanguageCodeReplyOptions = (excludedLanguageCode) => {
+const buildLanguageCodeReplyOptions = () => {
+	const buttons = availableLanguages
+		.slice(0, maxNumberOfInlineButtons - 2)
+		.map((l) => ({
+			text: l.code,
+			callback_data: JSON.stringify({ targetLanguageCode: l.code }),
+		}));
+
+	buttons.push({
+		text: '➡️',
+		callback_data: JSON.stringify({ page: 1 }),
+	});
+
 	return {
 		reply_markup: {
-			inline_keyboard: [
-				availableLanguages
-					.filter((l) => l.code !== excludedLanguageCode)
-					.map((l) => ({
-						text: l.name,
-						callback_data: JSON.stringify({ targetLanguageCode: l.code }),
-					})),
-			],
+			inline_keyboard: [buttons],
 		},
 	};
 };
@@ -82,6 +90,7 @@ router.post('/', async (req, res) => {
 	res.sendStatus(200);
 });
 
+// TODO: replace with a server command
 router.get('/setWebhook', async (req, res) => {
 	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setWebhook?url=' + process.env.WEBAPP_URL;
 	const response = await fetch(url);
@@ -89,12 +98,12 @@ router.get('/setWebhook', async (req, res) => {
 	res.json(response);
 });
 
+// TODO: replace with a server command
 router.get('/setMyCommands', async (req, res) => {
 	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setMyCommands?commands=' + JSON.stringify([{
 		'command': 'set_language', 'description': 'Set target language',
 	}]);
 	const response = await fetch(url);
-	console.log(response);
 
 	res.json(response);
 });
@@ -111,7 +120,7 @@ bot.on('callback_query', async (callback) => {
 	const data = JSON.parse(callback.data);
 
 	// Target language selected callback
-	if (data.targetLanguageCode) {
+	if (data.targetLanguageCode !== undefined) {
 		const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
 		let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 		lastUsedLanguageCodes.unshift(data.targetLanguageCode);
@@ -119,11 +128,55 @@ bot.on('callback_query', async (callback) => {
 
 		await redisClient.hSet(`${callback.message.chat.id}`, 'lastUsedLanguageCodes', JSON.stringify(lastUsedLanguageCodes));
 
+		const targetLanguage = codeLanguageMap[data.targetLanguageCode];
+
 		return bot.editMessageText(
-			`Target language: ${data.targetLanguageCode}. Send a text to translate it to ${data.targetLanguageCode}.`,
+			`Target language: ${targetLanguage} (${data.targetLanguageCode}). Send a text to translate.`,
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
+			}
+		);
+	}
+
+	if (data.page !== undefined) {
+		const itemsPerPage = maxNumberOfInlineButtons - 2;
+		const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
+		const offset = data.page * itemsPerPage;
+		const buttons = availableLanguages
+			.slice(offset, offset + itemsPerPage)
+			.map((l) => ({
+				text: l.code,
+				callback_data: JSON.stringify({ targetLanguageCode: l.code }),
+			}));
+
+		const nextButton = {
+			text: '➡️',
+			callback_data: JSON.stringify({ page: data.page + 1 }),
+		};
+
+		const previousButton = {
+			text: '⬅️',
+			callback_data: JSON.stringify({ page: data.page - 1 }),
+		};
+
+		if (data.page === 0) {
+			buttons.push(nextButton);
+		} else if (data.page + 1 === pageCount) {
+			buttons.unshift(previousButton);
+		} else {
+			buttons.push(nextButton);
+			buttons.unshift(previousButton);
+		}
+
+		return bot.editMessageText(
+			'Choose the target language:',
+			{
+				chat_id: callback.message.chat.id,
+				message_id: callback.message.message_id,
+				reply_markup: {
+					inline_keyboard: [buttons],
+				},
 			}
 		);
 	}
@@ -136,12 +189,9 @@ bot.on('message', async (message) => {
 		return;
 	}
 	// redisClient.flushAll();
-	// let langTo = ISO6391.getAllCodes().includes(req.body.queryResult.parameters.language)
-	// 	? req.body.queryResult.parameters.language : null;
 
-	const requestTargetLanguage = (text, excludedLanguageCode) => {
-
-		bot.sendMessage(message.chat.id, text, buildLanguageCodeReplyOptions(excludedLanguageCode));
+	const requestTargetLanguage = (text) => {
+		bot.sendMessage(message.chat.id, text, buildLanguageCodeReplyOptions());
 	};
 
 	const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
@@ -162,10 +212,8 @@ bot.on('message', async (message) => {
 
 		if (result.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
-				// TODO: exclude the source text language.
 				requestTargetLanguage(
 					'Your text is in the same language as the target language. Choose another target language:',
-					result.from.language.iso,
 				);
 				return;
 			} else {
