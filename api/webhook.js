@@ -11,21 +11,28 @@ const router = express.Router();
 
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
+const redisClient = redis.createClient({
+	url: process.env.REDIS_URL,
+	password: process.env.REDIS_PASSWORD,
+});
+redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
+redisClient.connect();
+
 const maxNumberOfInlineButtons = 8;
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
-const buildLanguageCodeReplyOptions = () => {
-	const buttons = availableLanguages
-		.slice(0, maxNumberOfInlineButtons - 2)
-		.map((l) => ({
-			text: l.code,
-			callback_data: JSON.stringify({ targetLanguageCode: l.code }),
+const buildLanguageCodeReplyOptions = (lastUsedLanguageCodes) => {
+	const buttons = (lastUsedLanguageCodes || availableLanguages.map((l) => l.code))
+		.slice(0, maxNumberOfInlineButtons - (lastUsedLanguageCodes ? 1 : 2))
+		.map((code) => ({
+			text: code,
+			callback_data: JSON.stringify({ targetLanguageCode: code }),
 		}));
 
 	buttons.push({
 		text: '➡️',
-		callback_data: JSON.stringify({ page: 1 }),
+		callback_data: JSON.stringify({ page: lastUsedLanguageCodes ? 0 : 1 }),
 	});
 
 	return {
@@ -35,12 +42,7 @@ const buildLanguageCodeReplyOptions = () => {
 	};
 };
 
-const redisClient = redis.createClient({
-	url: process.env.REDIS_URL,
-	password: process.env.REDIS_PASSWORD,
-});
-redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
-redisClient.connect();
+const ChooseTheTargetLanguageText = 'Choose the target language:';
 
 router.get('/test', async (req, res) => {
 	let codes = ISO6391.getAllCodes();
@@ -108,8 +110,10 @@ router.get('/setMyCommands', async (req, res) => {
 	res.json(response);
 });
 
-bot.onText(/\/set_language/, (message, match) => {
-	bot.sendMessage(message.chat.id, 'Choose target language:', buildLanguageCodeReplyOptions());
+bot.onText(/\/set_language/, async (message, match) => {
+	const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
+	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
+	bot.sendMessage(message.chat.id, ChooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
 });
 
 bot.on('callback_query', async (callback) => {
@@ -143,7 +147,7 @@ bot.on('callback_query', async (callback) => {
 		const itemsPerPage = maxNumberOfInlineButtons - 2;
 		const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
 		const offset = data.page * itemsPerPage;
-		const buttons = availableLanguages
+		let buttons = availableLanguages
 			.slice(offset, offset + itemsPerPage)
 			.map((l) => ({
 				text: l.code,
@@ -160,8 +164,18 @@ bot.on('callback_query', async (callback) => {
 			callback_data: JSON.stringify({ page: data.page - 1 }),
 		};
 
-		if (data.page === 0) {
+		const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
+		const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
+
+		if (data.page === -1) {
+			const options = buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined);
+			buttons = [...options.reply_markup.inline_keyboard[0]];
+		} else if (data.page === 0) {
 			buttons.push(nextButton);
+
+			if (lastUsedLanguageCodes.length > 0) {
+				buttons.unshift(previousButton);
+			}
 		} else if (data.page + 1 === pageCount) {
 			buttons.unshift(previousButton);
 		} else {
@@ -170,7 +184,7 @@ bot.on('callback_query', async (callback) => {
 		}
 
 		return bot.editMessageText(
-			'Choose the target language:',
+			ChooseTheTargetLanguageText,
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
@@ -198,7 +212,7 @@ bot.on('message', async (message) => {
 	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 	if (lastUsedLanguageCodes.length === 0) {
-		requestTargetLanguage('Choose the target language:');
+		requestTargetLanguage(ChooseTheTargetLanguageText);
 		return;
 	}
 
@@ -208,7 +222,6 @@ bot.on('message', async (message) => {
 			message.text,
 			{ to: targetLanguage },
 		);
-		// TODO: use alternative translations
 
 		if (result.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
@@ -228,7 +241,20 @@ bot.on('message', async (message) => {
 		lastUsedLanguageCodes.unshift(targetLanguage, result.from.language.iso);
 		lastUsedLanguageCodes = lastUsedLanguageCodes.filter(filterDuplicatesCallback);
 		await redisClient.hSet(`${message.chat.id}`, 'lastUsedLanguageCodes', JSON.stringify(lastUsedLanguageCodes));
-		bot.sendMessage(message.chat.id, result.text);
+
+		const actionButtons = [];
+
+		bot.sendMessage(
+			message.chat.id,
+			`${result.from.text.didYouMean ? result.from.text.value + '\n' : ''}${result.text}`,
+			actionButtons.length > 0
+				? {
+					reply_markup: {
+						inline_keyboard: [actionButtons],
+					},
+				}
+				: {},
+		);
 	} catch (err) {
 		// Process error in case target language is not supported
 		console.error(err);
