@@ -5,7 +5,9 @@ const ISO6391 = require('iso-639-1');
 const fetch = require('node-fetch');
 const redis = require('redis');
 const availableLanguages = require('./availableLanguages');
+const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
 const codeLanguageMap = require('@vitalets/google-translate-api/languages');
+const googleTTS = require('google-tts-api');
 
 const router = express.Router();
 
@@ -19,6 +21,8 @@ redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
 redisClient.connect();
 
 const maxNumberOfInlineButtons = 8;
+const maxTextToSpeechLength = 200;
+const translationActionListen = 'listen';
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
@@ -195,7 +199,35 @@ bot.on('callback_query', async (callback) => {
 		);
 	}
 
-	// TODO: more translations selected callback
+	if (data.translationAction !== undefined) {
+		if (data.translationAction === translationActionListen) {
+			const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
+			const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
+			let audioUrl = '';
+
+			try {
+				audioUrl = googleTTS.getAudioUrl(callback.message.text, {
+					lang: googleTextToSpeechLanguages.findByCode(lastUsedLanguageCodes[0]),
+					slow: false,
+					host: 'https://translate.google.com',
+				});
+
+				await bot.sendAudio(callback.message.chat.id, audioUrl, { caption: callback.message.text });
+
+				return bot.editMessageText(
+					callback.message.text,
+					{
+						chat_id: callback.message.chat.id,
+						message_id: callback.message.message_id,
+					},
+				);
+			} catch (e) {
+				console.log('audioUrl error', callback.message.text, audioUrl, lastUsedLanguageCodes);
+			}
+		}
+
+		// TODO: add more actions?
+	}
 });
 
 bot.on('message', async (message) => {
@@ -218,12 +250,12 @@ bot.on('message', async (message) => {
 
 	try {
 		let targetLanguage = lastUsedLanguageCodes[0];
-		let result = await translate(
+		let translation = await translate(
 			message.text,
 			{ to: targetLanguage },
 		);
 
-		if (result.from.language.iso === lastUsedLanguageCodes[0]) {
+		if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
 				requestTargetLanguage(
 					'Your text is in the same language as the target language. Choose another target language:',
@@ -231,22 +263,32 @@ bot.on('message', async (message) => {
 				return;
 			} else {
 				targetLanguage = lastUsedLanguageCodes[1];
-				result = await translate(
+				translation = await translate(
 					message.text,
 					{ to: targetLanguage },
 				);
 			}
 		}
 
-		lastUsedLanguageCodes.unshift(targetLanguage, result.from.language.iso);
+		lastUsedLanguageCodes.unshift(targetLanguage, translation.from.language.iso);
 		lastUsedLanguageCodes = lastUsedLanguageCodes.filter(filterDuplicatesCallback);
 		await redisClient.hSet(`${message.chat.id}`, 'lastUsedLanguageCodes', JSON.stringify(lastUsedLanguageCodes));
 
 		const actionButtons = [];
 
-		bot.sendMessage(
+		if (
+			translation.text.length < maxTextToSpeechLength
+			&& googleTextToSpeechLanguages.findByCode(targetLanguage)
+		) {
+			actionButtons.push({
+				text: '🔊 listen',
+				callback_data: JSON.stringify({ translationAction: translationActionListen }),
+			});
+		}
+
+		await bot.sendMessage(
 			message.chat.id,
-			`${result.from.text.didYouMean ? result.from.text.value + '\n' : ''}${result.text}`,
+			`${translation.from.text.didYouMean ? translation.from.text.value + '\n' : ''}${translation.text}`,
 			actionButtons.length > 0
 				? {
 					reply_markup: {
