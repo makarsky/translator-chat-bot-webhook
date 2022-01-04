@@ -48,6 +48,31 @@ const buildLanguageCodeReplyOptions = (lastUsedLanguageCodes) => {
 
 const ChooseTheTargetLanguageText = 'Choose the target language:';
 
+const commands = [
+	{
+		regExp: /\/set_language/,
+		description: 'Set target language',
+		handler: async (message, match) => {
+			const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
+			let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
+			bot.sendMessage(message.chat.id, ChooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
+		},
+	},
+	{
+		regExp: /\/about/,
+		description: 'About',
+		handler: (message, match) => {
+			const url = 'https://github.com/makarsky/translator-chat-bot-webhook'
+			// https://core.telegram.org/bots/api#formatting-options
+			const text = `[Repository](${url})\n\n[Suggestions / Bug Report](${url}/issues/new)\n\nMade with 🛠️ by Igor Makarsky`;
+
+			bot.sendMessage(message.chat.id, text, { parse_mode: 'MarkdownV2' });
+		},
+	},
+];
+
+commands.forEach((command) => bot.onText(command.regExp, command.handler));
+
 router.get('/test', async (req, res) => {
 	let codes = ISO6391.getAllCodes();
 	let langs = ISO6391.getLanguages(codes);
@@ -106,18 +131,15 @@ router.get('/setWebhook', async (req, res) => {
 
 // TODO: replace with a server command
 router.get('/setMyCommands', async (req, res) => {
-	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setMyCommands?commands=' + JSON.stringify([{
-		'command': 'set_language', 'description': 'Set target language',
-	}]);
+	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setMyCommands?commands=' + JSON.stringify(
+		commands.map((command) => ({
+			command: command.regExp.toString().replace(/\W+/g, ''),
+			description: command.description,
+		}))
+	);
 	const response = await fetch(url);
 
 	res.json(response);
-});
-
-bot.onText(/\/set_language/, async (message, match) => {
-	const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
-	bot.sendMessage(message.chat.id, ChooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
 });
 
 bot.on('callback_query', async (callback) => {
@@ -231,7 +253,7 @@ bot.on('callback_query', async (callback) => {
 });
 
 bot.on('message', async (message) => {
-	if (message.text.match(/\/set_language/)) {
+	if (commands.some((command) => message.text.match(command.regExp))) {
 		return;
 	}
 	// redisClient.flushAll();
