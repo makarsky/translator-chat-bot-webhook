@@ -1,7 +1,6 @@
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const translate = require('@vitalets/google-translate-api');
-const ISO6391 = require('iso-639-1');
 const fetch = require('node-fetch');
 const redis = require('redis');
 const availableLanguages = require('./availableLanguages');
@@ -34,6 +33,7 @@ const buildLanguageCodeReplyOptions = (lastUsedLanguageCodes) => {
 			callback_data: JSON.stringify({ targetLanguageCode: code }),
 		}));
 
+	// https://core.telegram.org/bots#pressing-buttons
 	buttons.push({
 		text: '➡️',
 		callback_data: JSON.stringify({ page: lastUsedLanguageCodes ? 0 : 1 }),
@@ -72,49 +72,6 @@ const commands = [
 ];
 
 commands.forEach((command) => bot.onText(command.regExp, command.handler));
-
-router.get('/test', async (req, res) => {
-	let codes = ISO6391.getAllCodes();
-	let langs = ISO6391.getLanguages(codes);
-	let mapped = [];
-	for (let lang of [langs[0], langs[1], langs[2], langs[3]]) {
-		let translations = [];
-		for (let code of codes) {
-
-			try {
-				translations.push(
-					(await translate(
-						lang.name,
-						{ to: lang.code }
-					)).text
-				);
-			} catch (error) {
-				// if lang.code is not supported
-				continue;
-			}
-
-			try {
-				translations.push(
-					(await translate(
-						lang.name,
-						{ to: code }
-					)).text
-				);
-			} catch (error) {
-
-			}
-		}
-		mapped.push([
-			lang.code,
-			lang.name,
-			lang.nativeName,
-			...translations
-		]);
-	}
-	console.log(mapped);
-
-	res.json(mapped);
-});
 
 router.post('/', async (req, res) => {
 	bot.processUpdate(req.body);
