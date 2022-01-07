@@ -46,7 +46,7 @@ const buildLanguageCodeReplyOptions = (lastUsedLanguageCodes) => {
 	};
 };
 
-const ChooseTheTargetLanguageText = 'Choose the target language:';
+const chooseTheTargetLanguageText = 'Choose the target language:';
 
 const commands = [
 	{
@@ -55,7 +55,7 @@ const commands = [
 		handler: async (message, match) => {
 			const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
 			let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
-			bot.sendMessage(message.chat.id, ChooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
+			bot.sendMessage(message.chat.id, chooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
 		},
 	},
 	{
@@ -76,14 +76,6 @@ commands.forEach((command) => bot.onText(command.regExp, command.handler));
 router.post('/', async (req, res) => {
 	bot.processUpdate(req.body);
 	res.sendStatus(200);
-});
-
-// TODO: replace with a server command
-router.get('/setWebhook', async (req, res) => {
-	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setWebhook?url=' + process.env.WEBAPP_URL;
-	const response = await fetch(url);
-
-	res.json(response);
 });
 
 // TODO: replace with a server command
@@ -167,7 +159,7 @@ bot.on('callback_query', async (callback) => {
 		}
 
 		return bot.editMessageText(
-			ChooseTheTargetLanguageText,
+			chooseTheTargetLanguageText,
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
@@ -223,7 +215,7 @@ bot.on('message', async (message) => {
 	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 	if (lastUsedLanguageCodes.length === 0) {
-		requestTargetLanguage(ChooseTheTargetLanguageText);
+		requestTargetLanguage(chooseTheTargetLanguageText);
 		return;
 	}
 
