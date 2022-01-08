@@ -2,76 +2,25 @@ const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const translate = require('@vitalets/google-translate-api');
 const fetch = require('node-fetch');
-const redis = require('redis');
+const redisClient = require('./redisClient');
 const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
 const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
+const inlineButtonsBuilder = require('./inlineButtonsBuilder');
+const botCommands = require('./botCommands');
 
 const router = express.Router();
 
 const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
-const redisClient = redis.createClient({
-	url: process.env.REDIS_URL,
-	password: process.env.REDIS_PASSWORD,
-});
-redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
-redisClient.connect();
-
-const maxNumberOfInlineButtons = 8;
 const maxTextToSpeechLength = 200;
 const translationActionListen = 'listen';
+const chooseTheTargetLanguageText = 'Choose the target language:';
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
-const buildLanguageCodeReplyOptions = (lastUsedLanguageCodes) => {
-	const buttons = (lastUsedLanguageCodes || availableLanguages.map((l) => l.code))
-		.slice(0, maxNumberOfInlineButtons - (lastUsedLanguageCodes ? 1 : 2))
-		.map((code) => ({
-			text: code,
-			callback_data: JSON.stringify({ targetLanguageCode: code }),
-		}));
-
-	// https://core.telegram.org/bots#pressing-buttons
-	buttons.push({
-		text: '➡️',
-		callback_data: JSON.stringify({ page: lastUsedLanguageCodes ? 0 : 1 }),
-	});
-
-	return {
-		reply_markup: {
-			inline_keyboard: [buttons],
-		},
-	};
-};
-
-const chooseTheTargetLanguageText = 'Choose the target language:';
-
-const commands = [
-	{
-		regExp: /\/set_language/,
-		description: 'Set target language',
-		handler: async (message, match) => {
-			const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-			let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
-			bot.sendMessage(message.chat.id, chooseTheTargetLanguageText, buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined));
-		},
-	},
-	{
-		regExp: /\/about/,
-		description: 'About',
-		handler: (message, match) => {
-			const url = 'https://github.com/makarsky/translator-chat-bot-webhook'
-			// https://core.telegram.org/bots/api#formatting-options
-			const text = `[Repository](${url})\n\n[Suggestions / Bug Report](${url}/issues/new)\n\nMade with 🛠️ by Igor Makarsky`;
-
-			bot.sendMessage(message.chat.id, text, { parse_mode: 'MarkdownV2' });
-		},
-	},
-];
-
-commands.forEach((command) => bot.onText(command.regExp, command.handler));
+botCommands.forEach((command) => bot.onText(command.regExp, command.handler.bind(bot)));
 
 router.post('/', async (req, res) => {
 	bot.processUpdate(req.body);
@@ -81,7 +30,7 @@ router.post('/', async (req, res) => {
 // TODO: replace with a server command
 router.get('/setMyCommands', async (req, res) => {
 	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setMyCommands?commands=' + JSON.stringify(
-		commands.map((command) => ({
+		botCommands.map((command) => ({
 			command: command.regExp.toString().replace(/\W+/g, ''),
 			description: command.description,
 		}))
@@ -119,7 +68,7 @@ bot.on('callback_query', async (callback) => {
 	}
 
 	if (data.page !== undefined) {
-		const itemsPerPage = maxNumberOfInlineButtons - 2;
+		const itemsPerPage = inlineButtonsBuilder.maxNumberOfInlineButtons - 2;
 		const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
 		const offset = data.page * itemsPerPage;
 		let buttons = availableLanguages
@@ -143,7 +92,7 @@ bot.on('callback_query', async (callback) => {
 		const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 		if (data.page === -1) {
-			const options = buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined);
+			const options = inlineButtonsBuilder.buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined);
 			buttons = [...options.reply_markup.inline_keyboard[0]];
 		} else if (data.page === 0) {
 			buttons.push(nextButton);
@@ -202,13 +151,13 @@ bot.on('callback_query', async (callback) => {
 });
 
 bot.on('message', async (message) => {
-	if (commands.some((command) => message.text.match(command.regExp))) {
+	if (botCommands.some((command) => message.text.match(command.regExp))) {
 		return;
 	}
 	// redisClient.flushAll();
 
 	const requestTargetLanguage = (text) => {
-		bot.sendMessage(message.chat.id, text, buildLanguageCodeReplyOptions());
+		bot.sendMessage(message.chat.id, text, inlineButtonsBuilder.buildLanguageCodeReplyOptions());
 	};
 
 	const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
