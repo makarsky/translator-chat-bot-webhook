@@ -9,6 +9,7 @@ const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const botCommands = require('./botCommands');
+const i18n = require('../localization/i18n');
 
 const router = express.Router();
 
@@ -16,7 +17,6 @@ const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
 const maxTextToSpeechLength = 200;
 const translationActionListen = 'listen';
-const chooseTheTargetLanguageText = 'Choose the target language:';
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
@@ -65,7 +65,7 @@ bot.on('callback_query', async (callback) => {
 		const targetLanguage = codeLanguageMap[data.targetLanguageCode];
 
 		return bot.editMessageText(
-			`Target language: ${targetLanguage} (${data.targetLanguageCode}). Send a text to translate.`,
+			i18n.t('targetLanguageStatus', 'en', [targetLanguage, data.targetLanguageCode]),
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
@@ -114,7 +114,7 @@ bot.on('callback_query', async (callback) => {
 		}
 
 		return bot.editMessageText(
-			chooseTheTargetLanguageText,
+			i18n.t('chooseTargetLanguage', 'en'),
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
@@ -170,7 +170,7 @@ bot.on('message', async (message) => {
 	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 	if (lastUsedLanguageCodes.length === 0) {
-		requestTargetLanguage(chooseTheTargetLanguageText);
+		requestTargetLanguage(i18n.t('chooseTargetLanguage', 'en'));
 		return;
 	}
 
@@ -183,9 +183,7 @@ bot.on('message', async (message) => {
 
 		if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
-				requestTargetLanguage(
-					'Your text is in the same language as the target language. Choose another target language:',
-				);
+				requestTargetLanguage(i18n.t('unsuitableTargetLanguage', 'en'));
 				return;
 			} else {
 				targetLanguage = lastUsedLanguageCodes[1];
@@ -207,7 +205,7 @@ bot.on('message', async (message) => {
 			&& googleTextToSpeechLanguages.findByCode(targetLanguage)
 		) {
 			actionButtons.push({
-				text: '🔊 listen',
+				text: i18n.t('listen', 'en'),
 				callback_data: JSON.stringify({ translationAction: translationActionListen }),
 			});
 		}
