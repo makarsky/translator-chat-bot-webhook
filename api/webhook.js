@@ -21,6 +21,12 @@ const chooseTheTargetLanguageText = 'Choose the target language:';
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
 botCommands.forEach((command) => bot.onText(command.regExp, command.handler.bind(bot)));
+bot.setMyCommands(
+	botCommands.map((command) => ({
+		command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
+		description: command.description,
+	}))
+);
 
 router.post('/', async (req, res) => {
 	bot.processUpdate(req.body);
