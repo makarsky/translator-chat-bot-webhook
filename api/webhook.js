@@ -21,10 +21,12 @@ const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
 botCommands.forEach((command) => bot.onText(command.regExp, command.handler.bind(bot)));
 bot.setMyCommands(
-	botCommands.map((command) => ({
-		command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
-		description: command.description,
-	}))
+	botCommands
+		.filter((command) => !command.hidden)
+		.map((command) => ({
+			command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
+			description: command.description,
+		}))
 );
 
 router.post('/', async (req, res) => {
@@ -37,28 +39,29 @@ bot.on('callback_query', async (callback) => {
 		return;
 	}
 
+	const message = callback.message;
 	const data = JSON.parse(callback.data);
 
 	// Target language selected callback
 	if (data.targetLanguageCode !== undefined) {
-		const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
+		const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
 		let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 		lastUsedLanguageCodes.unshift(data.targetLanguageCode);
 		lastUsedLanguageCodes = lastUsedLanguageCodes.filter(filterDuplicatesCallback);
 
-		await redisClient.hSet(`${callback.message.chat.id}`, 'lastUsedLanguageCodes', JSON.stringify(lastUsedLanguageCodes));
+		await redisClient.hSet(`${message.chat.id}`, 'lastUsedLanguageCodes', JSON.stringify(lastUsedLanguageCodes));
 
 		const targetLanguage = codeLanguageMap[data.targetLanguageCode];
 
 		return bot.editMessageText(
 			i18n.t(
 				'targetLanguageStatus',
-				chatSettings.interfaceLanguageCode,
+				chatSettings.interfaceLanguageCode || message.from.language_code,
 				[targetLanguage, data.targetLanguageCode]
 			),
 			{
-				chat_id: callback.message.chat.id,
-				message_id: callback.message.message_id,
+				chat_id: message.chat.id,
+				message_id: message.message_id,
 			}
 		);
 	}
@@ -66,7 +69,7 @@ bot.on('callback_query', async (callback) => {
 	// Target language selected callback
 	if (data.interfaceLanguageCode !== undefined) {
 		await redisClient.hSet(
-			`${callback.message.chat.id}`,
+			`${message.chat.id}`,
 			'interfaceLanguageCode',
 			data.interfaceLanguageCode
 		);
@@ -80,8 +83,8 @@ bot.on('callback_query', async (callback) => {
 				[interfaceLanguage, data.interfaceLanguageCode]
 			),
 			{
-				chat_id: callback.message.chat.id,
-				message_id: callback.message.message_id,
+				chat_id: message.chat.id,
+				message_id: message.message_id,
 			}
 		);
 	}
@@ -97,7 +100,7 @@ bot.on('callback_query', async (callback) => {
 		let previousPage = undefined;
 		let nextPage = undefined;
 
-		const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
+		const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
 		const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 		if (data.page === -1) {
@@ -117,10 +120,13 @@ bot.on('callback_query', async (callback) => {
 		}
 
 		return bot.editMessageText(
-			i18n.t('chooseTargetLanguage', chatSettings.interfaceLanguageCode),
+			i18n.t(
+				'chooseTargetLanguage',
+				chatSettings.interfaceLanguageCode || message.from.language_code
+			),
 			{
-				chat_id: callback.message.chat.id,
-				message_id: callback.message.message_id,
+				chat_id: message.chat.id,
+				message_id: message.message_id,
 				...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
 					languageCodes,
 					'targetLanguageCode',
@@ -133,28 +139,28 @@ bot.on('callback_query', async (callback) => {
 
 	if (data.translationAction !== undefined) {
 		if (data.translationAction === translationActionListen) {
-			const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
+			const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
 			const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 			let audioUrl = '';
 
 			try {
-				audioUrl = googleTTS.getAudioUrl(callback.message.text, {
+				audioUrl = googleTTS.getAudioUrl(message.text, {
 					lang: googleTextToSpeechLanguages.findByCode(lastUsedLanguageCodes[0]),
 					slow: false,
 					host: 'https://translate.google.com',
 				});
 
-				await bot.sendAudio(callback.message.chat.id, audioUrl, { caption: callback.message.text });
+				await bot.sendAudio(message.chat.id, audioUrl, { caption: message.text });
 
 				return bot.editMessageText(
-					callback.message.text,
+					message.text,
 					{
-						chat_id: callback.message.chat.id,
-						message_id: callback.message.message_id,
+						chat_id: message.chat.id,
+						message_id: message.message_id,
 					},
 				);
 			} catch (e) {
-				console.log('audioUrl error', callback.message.text, audioUrl, lastUsedLanguageCodes);
+				console.log('audioUrl error', message.text, audioUrl, lastUsedLanguageCodes);
 			}
 		}
 
@@ -187,7 +193,12 @@ bot.on('message', async (message) => {
 	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 	if (lastUsedLanguageCodes.length === 0) {
-		requestTargetLanguage(i18n.t('chooseTargetLanguage', chatSettings.interfaceLanguageCode));
+		requestTargetLanguage(
+			i18n.t(
+				'chooseTargetLanguage',
+				chatSettings.interfaceLanguageCode || message.from.language_code
+			)
+		);
 		return;
 	}
 
@@ -201,7 +212,10 @@ bot.on('message', async (message) => {
 		if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
 				requestTargetLanguage(
-					i18n.t('unsuitableTargetLanguage', chatSettings.interfaceLanguageCode)
+					i18n.t(
+						'unsuitableTargetLanguage',
+						chatSettings.interfaceLanguageCode || message.from.language_code
+					)
 				);
 				return;
 			} else {
@@ -224,7 +238,10 @@ bot.on('message', async (message) => {
 			&& googleTextToSpeechLanguages.findByCode(targetLanguage)
 		) {
 			actionButtons.push({
-				text: i18n.t('listen', chatSettings.interfaceLanguageCode),
+				text: i18n.t(
+					'listen',
+					chatSettings.interfaceLanguageCode || message.from.language_code
+				),
 				callback_data: JSON.stringify({ translationAction: translationActionListen }),
 			});
 		}
