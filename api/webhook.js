@@ -65,7 +65,34 @@ bot.on('callback_query', async (callback) => {
 		const targetLanguage = codeLanguageMap[data.targetLanguageCode];
 
 		return bot.editMessageText(
-			i18n.t('targetLanguageStatus', 'en', [targetLanguage, data.targetLanguageCode]),
+			i18n.t(
+				'targetLanguageStatus',
+				chatSettings.interfaceLanguageCode,
+				[targetLanguage, data.targetLanguageCode]
+			),
+			{
+				chat_id: callback.message.chat.id,
+				message_id: callback.message.message_id,
+			}
+		);
+	}
+
+	// Target language selected callback
+	if (data.interfaceLanguageCode !== undefined) {
+		await redisClient.hSet(
+			`${callback.message.chat.id}`,
+			'interfaceLanguageCode',
+			data.interfaceLanguageCode
+		);
+
+		const interfaceLanguage = codeLanguageMap[data.interfaceLanguageCode];
+
+		return bot.editMessageText(
+			i18n.t(
+				'interfaceLanguageStatus',
+				data.interfaceLanguageCode,
+				[interfaceLanguage, data.interfaceLanguageCode]
+			),
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
@@ -77,50 +104,43 @@ bot.on('callback_query', async (callback) => {
 		const itemsPerPage = inlineButtonsBuilder.maxNumberOfInlineButtons - 2;
 		const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
 		const offset = data.page * itemsPerPage;
-		let buttons = availableLanguages
+		let languageCodes = availableLanguages
 			.slice(offset, offset + itemsPerPage)
-			.map((l) => ({
-				text: l.code,
-				callback_data: JSON.stringify({ targetLanguageCode: l.code }),
-			}));
+			.map((l) => l.code);
 
-		const nextButton = {
-			text: '➡️',
-			callback_data: JSON.stringify({ page: data.page + 1 }),
-		};
-
-		const previousButton = {
-			text: '⬅️',
-			callback_data: JSON.stringify({ page: data.page - 1 }),
-		};
+		let previousPage = undefined;
+		let nextPage = undefined;
 
 		const chatSettings = await redisClient.hGetAll(`${callback.message.chat.id}`);
 		const lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 		if (data.page === -1) {
-			const options = inlineButtonsBuilder.buildLanguageCodeReplyOptions(lastUsedLanguageCodes.length > 0 ? lastUsedLanguageCodes : undefined);
-			buttons = [...options.reply_markup.inline_keyboard[0]];
+			languageCodes = lastUsedLanguageCodes.slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1);
+			nextPage = 0;
 		} else if (data.page === 0) {
-			buttons.push(nextButton);
+			nextPage = data.page + 1;
 
 			if (lastUsedLanguageCodes.length > 0) {
-				buttons.unshift(previousButton);
+				previousPage = data.page - 1;
 			}
 		} else if (data.page + 1 === pageCount) {
-			buttons.unshift(previousButton);
+			previousPage = data.page - 1;
 		} else {
-			buttons.push(nextButton);
-			buttons.unshift(previousButton);
+			nextPage = data.page + 1;
+			previousPage = data.page - 1;
 		}
 
 		return bot.editMessageText(
-			i18n.t('chooseTargetLanguage', 'en'),
+			i18n.t('chooseTargetLanguage', chatSettings.interfaceLanguageCode),
 			{
 				chat_id: callback.message.chat.id,
 				message_id: callback.message.message_id,
-				reply_markup: {
-					inline_keyboard: [buttons],
-				},
+				...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
+					languageCodes,
+					'targetLanguageCode',
+					previousPage,
+					nextPage
+				)
 			}
 		);
 	}
@@ -163,14 +183,25 @@ bot.on('message', async (message) => {
 	// redisClient.flushAll();
 
 	const requestTargetLanguage = (text) => {
-		bot.sendMessage(message.chat.id, text, inlineButtonsBuilder.buildLanguageCodeReplyOptions());
+		bot.sendMessage(
+			message.chat.id,
+			text,
+			inlineButtonsBuilder.buildLanguageCodeReplyOptions(
+				availableLanguages
+					.map((l) => l.code)
+					.slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 2),
+				'targetLanguageCode',
+				undefined,
+				1
+			)
+		);
 	};
 
 	const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
 	let lastUsedLanguageCodes = JSON.parse(chatSettings.lastUsedLanguageCodes || '[]');
 
 	if (lastUsedLanguageCodes.length === 0) {
-		requestTargetLanguage(i18n.t('chooseTargetLanguage', 'en'));
+		requestTargetLanguage(i18n.t('chooseTargetLanguage', chatSettings.interfaceLanguageCode));
 		return;
 	}
 
@@ -183,7 +214,9 @@ bot.on('message', async (message) => {
 
 		if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
 			if (lastUsedLanguageCodes.length === 1) {
-				requestTargetLanguage(i18n.t('unsuitableTargetLanguage', 'en'));
+				requestTargetLanguage(
+					i18n.t('unsuitableTargetLanguage', chatSettings.interfaceLanguageCode)
+				);
 				return;
 			} else {
 				targetLanguage = lastUsedLanguageCodes[1];
@@ -205,7 +238,7 @@ bot.on('message', async (message) => {
 			&& googleTextToSpeechLanguages.findByCode(targetLanguage)
 		) {
 			actionButtons.push({
-				text: i18n.t('listen', 'en'),
+				text: i18n.t('listen', chatSettings.interfaceLanguageCode),
 				callback_data: JSON.stringify({ translationAction: translationActionListen }),
 			});
 		}
