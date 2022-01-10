@@ -33,19 +33,6 @@ router.post('/', async (req, res) => {
 	res.sendStatus(200);
 });
 
-// TODO: replace with a server command
-router.get('/setMyCommands', async (req, res) => {
-	const url = 'https://api.telegram.org/bot' + process.env.TOKEN + '/setMyCommands?commands=' + JSON.stringify(
-		botCommands.map((command) => ({
-			command: command.regExp.toString().replace(/\W+/g, ''),
-			description: command.description,
-		}))
-	);
-	const response = await fetch(url);
-
-	res.json(response);
-});
-
 bot.on('callback_query', async (callback) => {
 	if (!callback.data || !callback.message) {
 		return;
