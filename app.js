@@ -9,10 +9,6 @@ const api = require('./api');
 
 const path = __dirname + '/views/';
 
-// Constants
-const PORT = 3000;
-const HOST = '0.0.0.0';
-
 router.use(function (req, res, next) {
   console.log("/" + req.method);
   next();
@@ -31,6 +27,6 @@ app.use(express.static(path));
 app.use('/', router);
 app.use('/api/v1', api);
 
-app.listen(PORT, function () {
-  console.log(`Example app listening on port ${PORT}!`)
+app.listen(process.env.PORT, function () {
+  console.log(`Example app listening on port ${process.env.PORT}!`)
 })

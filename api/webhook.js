@@ -1,7 +1,6 @@
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const translate = require('@vitalets/google-translate-api');
-const fetch = require('node-fetch');
 const redisClient = require('./redisClient');
 const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
