@@ -5,7 +5,7 @@ const availableLanguages = require('./availableLanguages');
 
 const botCommands = [
     {
-        regExp: /\/set_language/,
+        regExp: /\/set_target_language/,
         description: 'Set target language',
         handler: async function (message, match) {
             const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
