@@ -6,6 +6,7 @@ const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
 const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
+const googleUa = require('./../analytics/google-ua');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const botCommands = require('./botCommands');
 const i18n = require('../localization/i18n');
@@ -53,6 +54,13 @@ bot.on('callback_query', async (callback) => {
 
 		const targetLanguage = codeLanguageMap[data.targetLanguageCode];
 
+		googleUa.event(
+			message.from.id,
+			googleUa.categories.translator,
+			googleUa.actions.targetLanguageSelected,
+			data.targetLanguageCode
+		);
+
 		return bot.editMessageText(
 			i18n.t(
 				'targetLanguageStatus',
@@ -75,6 +83,13 @@ bot.on('callback_query', async (callback) => {
 		);
 
 		const interfaceLanguage = codeLanguageMap[data.interfaceLanguageCode];
+
+		googleUa.event(
+			message.from.id,
+			googleUa.categories.translator,
+			googleUa.actions.interfaceLanguageSelected,
+			data.interfaceLanguageCode
+		);
 
 		return bot.editMessageText(
 			i18n.t(
@@ -151,6 +166,12 @@ bot.on('callback_query', async (callback) => {
 				});
 
 				await bot.sendAudio(message.chat.id, audioUrl, { caption: message.text });
+
+				googleUa.event(
+					message.from.id,
+					googleUa.categories.translator,
+					googleUa.actions.listen
+				);
 
 				return bot.editMessageText(
 					message.text,
@@ -256,6 +277,13 @@ bot.on('message', async (message) => {
 					},
 				}
 				: {},
+		);
+
+		googleUa.event(
+			message.from.id,
+			googleUa.categories.translator,
+			googleUa.actions.translate,
+			targetLanguage
 		);
 	} catch (err) {
 		// Process error in case target language is not supported

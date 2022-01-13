@@ -1,3 +1,4 @@
+const googleUa = require('./../analytics/google-ua');
 const redisClient = require('./redisClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const i18n = require('../localization/i18n');
@@ -22,6 +23,12 @@ const setTargetLanguageHandler = async function (message, match) {
             undefined,
             lastUsedLanguageCodes.length > 0 ? 0 : 1
         )
+    );
+
+    googleUa.event(
+        message.from.id,
+        googleUa.categories.translator,
+        message.text.match(/\/start/) ? googleUa.actions.start : googleUa.actions.setTargetLanguage
     );
 };
 
@@ -54,6 +61,12 @@ const botCommands = [
                 ),
                 { parse_mode: 'MarkdownV2' }
             );
+
+            googleUa.event(
+                message.from.id,
+                googleUa.categories.translator,
+                googleUa.actions.about
+            );
         },
     },
     {
@@ -74,6 +87,12 @@ const botCommands = [
                     undefined,
                     1
                 )
+            );
+
+            googleUa.event(
+                message.from.id,
+                googleUa.categories.translator,
+                googleUa.actions.setInterfaceLanguage
             );
         },
     },
