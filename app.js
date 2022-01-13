@@ -5,7 +5,7 @@ require('dotenv').config();
 const app = express();
 const router = express.Router();
 
-const api = require('./api');
+const api = require('./src/api');
 
 const path = __dirname + '/views/';
 
