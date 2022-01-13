@@ -29,6 +29,7 @@ bot.setMyCommands(
 			description: command.description,
 		}))
 );
+bot.setWebHook(process.env.WEBAPP_URL);
 
 router.post('/', async (req, res) => {
 	bot.processUpdate(req.body);
