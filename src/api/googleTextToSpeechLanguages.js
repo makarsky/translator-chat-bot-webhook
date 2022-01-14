@@ -140,6 +140,7 @@ const languageCodes = [
 ];
 
 const findByCode = (code) => {
+  // eslint-disable-next-line no-restricted-syntax
   for (const languageCode of languageCodes) {
     if (languageCode.indexOf(code) === 0) {
       return languageCode;

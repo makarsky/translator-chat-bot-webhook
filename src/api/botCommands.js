@@ -4,7 +4,7 @@ const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const i18n = require('../localization/i18n');
 const availableLanguages = require('./availableLanguages');
 
-const setTargetLanguageHandler = async function (message, match) {
+const setTargetLanguageHandler = async function (message) {
   const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
   const lastUsedLanguageCodes = JSON.parse(
     chatSettings.lastUsedLanguageCodes || '[]',
@@ -59,7 +59,7 @@ const botCommands = [
     regExp: /\/about/,
     description: 'About',
     hidden: false,
-    async handler(message, match) {
+    async handler(message) {
       const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
       // https://core.telegram.org/bots/api#formatting-options
       this.sendMessage(
@@ -83,7 +83,7 @@ const botCommands = [
     regExp: /\/set_interface_language/,
     description: 'Set interface language',
     hidden: false,
-    async handler(message, match) {
+    async handler(message) {
       const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
       this.sendMessage(
         message.chat.id,

@@ -3,8 +3,8 @@ const maxNumberOfInlineButtons = 8;
 const buildLanguageCodeReplyOptions = (
   languageCodes,
   callbackParameter = 'targetLanguageCode',
-  previosPage,
-  nextPage,
+  previosPage = undefined,
+  nextPage = undefined,
 ) => {
   const buttons = languageCodes.map((code) => ({
     text: code,

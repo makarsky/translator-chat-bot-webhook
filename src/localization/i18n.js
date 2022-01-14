@@ -44,9 +44,9 @@ const localizations = {
 };
 
 const t = (key, languageCode, replacements = []) => {
-  languageCode = languageCode || 'en';
+  const newLanguageCode = languageCode || 'en';
 
-  const text = localizations[key] ? localizations[key][languageCode] : '';
+  const text = localizations[key] ? localizations[key][newLanguageCode] : '';
 
   if (replacements.length === 0) {
     return text;
