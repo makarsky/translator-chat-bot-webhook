@@ -72,7 +72,7 @@ bot.on('callback_query', async (callback) => {
       data.targetLanguageCode,
     );
 
-    return bot.editMessageText(
+    bot.editMessageText(
       i18n.t(
         'targetLanguageStatus',
         chatSettings.interfaceLanguageCode || message.from.language_code,
@@ -102,7 +102,7 @@ bot.on('callback_query', async (callback) => {
       data.interfaceLanguageCode,
     );
 
-    return bot.editMessageText(
+    bot.editMessageText(
       i18n.t('interfaceLanguageStatus', data.interfaceLanguageCode, [
         interfaceLanguage,
         data.interfaceLanguageCode,
@@ -149,7 +149,7 @@ bot.on('callback_query', async (callback) => {
       previousPage = data.page - 1;
     }
 
-    return bot.editMessageText(
+    bot.editMessageText(
       i18n.t(
         'chooseTargetLanguage',
         chatSettings.interfaceLanguageCode || message.from.language_code,
@@ -194,7 +194,7 @@ bot.on('callback_query', async (callback) => {
           googleUa.actions.listen,
         );
 
-        return bot.editMessageText(message.text, {
+        bot.editMessageText(message.text, {
           chat_id: message.chat.id,
           message_id: message.message_id,
         });
@@ -262,6 +262,7 @@ bot.on('message', async (message) => {
         );
         return;
       }
+      // eslint-disable-next-line prefer-destructuring
       targetLanguage = lastUsedLanguageCodes[1];
       translation = await translate(message.text, { to: targetLanguage });
     }
