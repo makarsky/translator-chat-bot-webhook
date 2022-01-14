@@ -6,7 +6,9 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint \"./**/*.js\"",
+    "lintFix": "eslint --fix './**/*.js'"
   },
   "author": "Igor Makarsky",
   "license": "MIT",
@@ -21,6 +23,12 @@
     "universal-analytics": "^0.5.3"
   },
   "devDependencies": {
-    "nodemon": "^2.0.15"
+    "eslint": "^8.6.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.25.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.5.1"
   }
 }
