@@ -1,4 +1,4 @@
-const express = require("express");
+const express = require('express');
 const bodyParser = require('body-parser');
 require('dotenv').config();
 
@@ -7,26 +7,28 @@ const router = express.Router();
 
 const api = require('./src/api');
 
-const path = __dirname + '/views/';
+const path = `${__dirname}/views/`;
 
-router.use(function (req, res, next) {
-  console.log("/" + req.method);
+router.use((req, res, next) => {
+  console.log(`/${req.method}`);
   next();
 });
 
-router.get("/", function (req, res) {
-  res.sendFile(path + "index.html");
+router.get('/', (req, res) => {
+  res.sendFile(`${path}index.html`);
 });
 
-app.use(bodyParser.urlencoded({
-  extended: true
-}))
-app.use(bodyParser.json())
+app.use(
+  bodyParser.urlencoded({
+    extended: true,
+  }),
+);
+app.use(bodyParser.json());
 
 app.use(express.static(path));
 app.use('/', router);
 app.use('/api/v1', api);
 
-app.listen(process.env.PORT, function () {
-  console.log(`Example app listening on port ${process.env.PORT}!`)
-})
+app.listen(process.env.PORT, () => {
+  console.log(`Example app listening on port ${process.env.PORT}!`);
+});
