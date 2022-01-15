@@ -7,4 +7,9 @@ const redisClient = redis.createClient({
 redisClient.on('error', (err) => console.log('Redis redisClient Error', err));
 redisClient.connect();
 
-module.exports = redisClient;
+module.exports = {
+  getChatSettingsById: async (chatId) =>
+    (await redisClient.json.get(`${chatId}`)) || {},
+  setChatSettingsById: async (chatId, key, data) =>
+    redisClient.json.set(`${chatId}`, key, data),
+};

@@ -5,10 +5,8 @@ const i18n = require('../localization/i18n');
 const availableLanguages = require('./availableLanguages');
 
 const setTargetLanguageHandler = async function (message) {
-  const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-  const lastUsedLanguageCodes = JSON.parse(
-    chatSettings.lastUsedLanguageCodes || '[]',
-  );
+  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
   const languageCodes =
     lastUsedLanguageCodes.length > 0
       ? lastUsedLanguageCodes.slice(
@@ -60,7 +58,9 @@ const botCommands = [
     description: 'About',
     hidden: false,
     async handler(message) {
-      const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
+      const chatSettings = await redisClient.getChatSettingsById(
+        message.chat.id,
+      );
       // https://core.telegram.org/bots/api#formatting-options
       this.sendMessage(
         message.chat.id,
@@ -84,7 +84,9 @@ const botCommands = [
     description: 'Set interface language',
     hidden: false,
     async handler(message) {
-      const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
+      const chatSettings = await redisClient.getChatSettingsById(
+        message.chat.id,
+      );
       this.sendMessage(
         message.chat.id,
         i18n.t(
@@ -94,8 +96,6 @@ const botCommands = [
         inlineButtonsBuilder.buildLanguageCodeReplyOptions(
           Object.keys(i18n.chooseTargetLanguage),
           'interfaceLanguageCode',
-          undefined,
-          1,
         ),
       );
 
