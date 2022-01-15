@@ -48,19 +48,17 @@ bot.on('callback_query', async (callback) => {
 
   // Target language selected callback
   if (data.targetLanguageCode !== undefined) {
-    const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-    let lastUsedLanguageCodes = JSON.parse(
-      chatSettings.lastUsedLanguageCodes || '[]',
-    );
+    const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+    let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
     lastUsedLanguageCodes.unshift(data.targetLanguageCode);
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
       filterDuplicatesCallback,
     );
 
-    await redisClient.hSet(
-      `${message.chat.id}`,
-      'lastUsedLanguageCodes',
-      JSON.stringify(lastUsedLanguageCodes),
+    await redisClient.setChatSettingsById(
+      message.chat.id,
+      '.lastUsedLanguageCodes',
+      lastUsedLanguageCodes,
     );
 
     const targetLanguage = codeLanguageMap[data.targetLanguageCode];
@@ -87,9 +85,9 @@ bot.on('callback_query', async (callback) => {
 
   // Target language selected callback
   if (data.interfaceLanguageCode !== undefined) {
-    await redisClient.hSet(
-      `${message.chat.id}`,
-      'interfaceLanguageCode',
+    await redisClient.setChatSettingsById(
+      message.chat.id,
+      '.interfaceLanguageCode',
       data.interfaceLanguageCode,
     );
 
@@ -125,10 +123,8 @@ bot.on('callback_query', async (callback) => {
     let previousPage;
     let nextPage;
 
-    const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-    const lastUsedLanguageCodes = JSON.parse(
-      chatSettings.lastUsedLanguageCodes || '[]',
-    );
+    const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+    const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
     if (data.page === -1) {
       languageCodes = lastUsedLanguageCodes.slice(
@@ -169,10 +165,10 @@ bot.on('callback_query', async (callback) => {
 
   if (data.translationAction !== undefined) {
     if (data.translationAction === translationActionListen) {
-      const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-      const lastUsedLanguageCodes = JSON.parse(
-        chatSettings.lastUsedLanguageCodes || '[]',
+      const chatSettings = await redisClient.getChatSettingsById(
+        message.chat.id,
       );
+      const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
       let audioUrl = '';
 
       try {
@@ -233,10 +229,8 @@ bot.on('message', async (message) => {
     );
   };
 
-  const chatSettings = await redisClient.hGetAll(`${message.chat.id}`);
-  let lastUsedLanguageCodes = JSON.parse(
-    chatSettings.lastUsedLanguageCodes || '[]',
-  );
+  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
   if (lastUsedLanguageCodes.length === 0) {
     requestTargetLanguage(
@@ -274,10 +268,10 @@ bot.on('message', async (message) => {
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
       filterDuplicatesCallback,
     );
-    await redisClient.hSet(
-      `${message.chat.id}`,
-      'lastUsedLanguageCodes',
-      JSON.stringify(lastUsedLanguageCodes),
+    await redisClient.setChatSettingsById(
+      message.chat.id,
+      '.lastUsedLanguageCodes',
+      lastUsedLanguageCodes,
     );
 
     const actionButtons = [];

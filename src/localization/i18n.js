@@ -7,7 +7,7 @@ const localizations = {
   },
   chooseInterfaceLanguage: {
     be: 'Выберыце мову інтэрфейсу:',
-    en: 'Choose an interface language:',
+    en: 'Choose the interface language:',
     ru: 'Выберите язык интерфейса:',
     uk: 'Виберіть мову інтерфейсу:',
   },
