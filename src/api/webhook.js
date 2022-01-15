@@ -268,11 +268,9 @@ bot.on('message', async (message) => {
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
       filterDuplicatesCallback,
     );
-    await redisClient.setChatSettingsById(
-      message.chat.id,
-      '.lastUsedLanguageCodes',
-      lastUsedLanguageCodes,
-    );
+    chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
+    chatSettings.updatedAtTimestamp = Date.now();
+    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
 
     const actionButtons = [];
 
