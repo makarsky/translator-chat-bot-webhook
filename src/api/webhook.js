@@ -3,6 +3,7 @@ const TelegramBot = require('node-telegram-bot-api');
 const translate = require('@vitalets/google-translate-api');
 const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
+const Sentry = require('@sentry/node');
 const redisClient = require('./redisClient');
 const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
@@ -21,8 +22,22 @@ const translationActionListen = 'listen';
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
 botCommands.forEach((command) =>
-  bot.onText(command.regExp, command.handler.bind(bot)),
+  bot.onText(command.regExp, (message, match) => {
+    Sentry.setUser({ id: message.chat.id });
+
+    const transaction = Sentry.startTransaction({
+      op: command.regExp.toString().replace(/\W+/g, ''),
+      name: command.regExp.toString().replace(/\W+/g, ''),
+    });
+
+    try {
+      command.handler.bind(bot)(message, match);
+    } finally {
+      transaction.finish();
+    }
+  }),
 );
+
 bot.setMyCommands(
   botCommands
     .filter((command) => !command.hidden)
@@ -44,6 +59,14 @@ bot.on('callback_query', async (callback) => {
   }
 
   const { message } = callback;
+
+  Sentry.setUser({ id: message.chat.id });
+
+  const transaction = Sentry.startTransaction({
+    op: 'callback_query',
+    name: 'callback_query',
+  });
+
   const data = JSON.parse(callback.data);
 
   // Target language selected callback
@@ -201,18 +224,37 @@ bot.on('callback_query', async (callback) => {
           audioUrl,
           lastUsedLanguageCodes,
         );
+
+        Sentry.captureException(e, {
+          contexts: {
+            audioUrlError: {
+              chatId: message.chat.id,
+              lastUsedLanguageCodes,
+            },
+          },
+        });
+
+        transaction.finish();
       }
     }
 
     // TODO: add more actions?
   }
+
+  transaction.finish();
 });
 
 bot.on('message', async (message) => {
   if (botCommands.some((command) => message.text.match(command.regExp))) {
     return;
   }
-  // redisClient.flushAll();
+
+  Sentry.setUser({ id: message.chat.id });
+
+  const transaction = Sentry.startTransaction({
+    op: 'message',
+    name: 'message',
+  });
 
   const requestTargetLanguage = (text) => {
     bot.sendMessage(
@@ -232,17 +274,17 @@ bot.on('message', async (message) => {
   const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
   let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
-  if (lastUsedLanguageCodes.length === 0) {
-    requestTargetLanguage(
-      i18n.t(
-        'chooseTargetLanguage',
-        chatSettings.interfaceLanguageCode || message.from.language_code,
-      ),
-    );
-    return;
-  }
-
   try {
+    if (lastUsedLanguageCodes.length === 0) {
+      requestTargetLanguage(
+        i18n.t(
+          'chooseTargetLanguage',
+          chatSettings.interfaceLanguageCode || message.from.language_code,
+        ),
+      );
+      return;
+    }
+
     let targetLanguage = lastUsedLanguageCodes[0];
     let translation = await translate(message.text, { to: targetLanguage });
 
@@ -311,9 +353,18 @@ bot.on('message', async (message) => {
       googleUa.actions.translate,
       targetLanguage,
     );
-  } catch (err) {
-    // Process error in case target language is not supported
-    console.error(err);
+  } catch (e) {
+    console.error('onMessage handler error', e);
+    Sentry.captureException(e, {
+      contexts: {
+        onMessageError: {
+          chatId: message.chat.id,
+          lastUsedLanguageCodes,
+        },
+      },
+    });
+  } finally {
+    transaction.finish();
   }
 });
 
