@@ -1,3 +1,5 @@
+const defaultLanguageCode = 'en';
+
 const localizations = {
   about: {
     be: '[Рэпазітар]($1)\n\n[Прапановы / Паведаміць аб памылцы]($1/issues/new)\n\nЗрабіў з 🛠️ Ігар Макарскі',
@@ -16,6 +18,24 @@ const localizations = {
     en: 'Choose the target language:',
     ru: 'Выберите язык перевода:',
     uk: 'Виберіть мову перекладу:',
+  },
+  commandDescriptionAbout: {
+    be: 'Інфармацыя пра чат-бот',
+    en: 'About',
+    ru: 'Информация о боте',
+    uk: 'Інформація про чат-бот',
+  },
+  commandDescriptionSetInterfaceLanguage: {
+    be: 'Задаць мову інтэрфейсу',
+    en: 'Set interface language',
+    ru: 'Установить язык интерфейса',
+    uk: 'Встановити мову інтерфейсу',
+  },
+  commandDescriptionSetTargetLanguage: {
+    be: 'Устанавіць мову перакладу',
+    en: 'Set target language',
+    ru: 'Установить язык перевода',
+    uk: 'Встановити мову перекладу',
   },
   interfaceLanguageStatus: {
     be: 'Мова інтэрфейсу: $1 ($2).',
@@ -44,9 +64,12 @@ const localizations = {
 };
 
 const t = (key, languageCode, replacements = []) => {
-  const newLanguageCode = languageCode || 'en';
+  const newLanguageCode = languageCode || defaultLanguageCode;
 
-  const text = localizations[key] ? localizations[key][newLanguageCode] : '';
+  const text =
+    localizations[key] && localizations[key][newLanguageCode]
+      ? localizations[key][newLanguageCode]
+      : localizations[key][defaultLanguageCode];
 
   if (replacements.length === 0) {
     return text;

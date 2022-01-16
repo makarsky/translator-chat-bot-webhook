@@ -38,14 +38,22 @@ botCommands.forEach((command) =>
   }),
 );
 
-bot.setMyCommands(
-  botCommands
-    .filter((command) => !command.hidden)
-    .map((command) => ({
-      command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
-      description: command.description,
-    })),
-);
+Object.keys(i18n.about).forEach((languageCode) => {
+  bot.setMyCommands(
+    botCommands
+      .filter((command) => !command.hidden)
+      .map((command) => ({
+        command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
+        description: i18n[command.description][languageCode],
+      })),
+    languageCode === 'en'
+      ? undefined
+      : {
+          language_code: languageCode,
+        },
+  );
+});
+
 bot.setWebHook(process.env.WEBAPP_URL);
 
 router.post('/', async (req, res) => {
@@ -81,12 +89,9 @@ bot.on('callback_query', async (callback) => {
       0,
       inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
     );
+    chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
 
-    await redisClient.setChatSettingsById(
-      message.chat.id,
-      '.lastUsedLanguageCodes',
-      lastUsedLanguageCodes,
-    );
+    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
 
     const targetLanguage = codeLanguageMap[data.targetLanguageCode];
 
@@ -112,11 +117,9 @@ bot.on('callback_query', async (callback) => {
 
   // Target language selected callback
   if (data.interfaceLanguageCode !== undefined) {
-    await redisClient.setChatSettingsById(
-      message.chat.id,
-      '.interfaceLanguageCode',
-      data.interfaceLanguageCode,
-    );
+    const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+    chatSettings.interfaceLanguageCode = data.interfaceLanguageCode;
+    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
 
     const interfaceLanguage = codeLanguageMap[data.interfaceLanguageCode];
 
