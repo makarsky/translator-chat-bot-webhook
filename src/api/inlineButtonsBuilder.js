@@ -1,23 +1,25 @@
 const maxNumberOfInlineButtons = 8;
 
 const buildLanguageCodeReplyOptions = (
-  languageCodes,
+  languages,
   callbackParameter,
   userLocale,
   previosPage = undefined,
   nextPage = undefined,
 ) => {
-  const buttons = languageCodes.map((code) => ({
-    text: code,
+  const buttons = languages.map((language) => ({
+    text: language.language,
     callback_data: JSON.stringify({
-      [callbackParameter]: code,
+      [callbackParameter]: language.code,
       userLocale,
     }),
   }));
 
+  const pagination = [];
+
   // https://core.telegram.org/bots#pressing-buttons
   if (nextPage !== undefined) {
-    buttons.push({
+    pagination.push({
       text: '➡️',
       callback_data: JSON.stringify({
         page: nextPage,
@@ -27,7 +29,7 @@ const buildLanguageCodeReplyOptions = (
     });
   }
   if (previosPage !== undefined) {
-    buttons.unshift({
+    pagination.unshift({
       text: '⬅️',
       callback_data: JSON.stringify({
         page: previosPage,
@@ -39,7 +41,7 @@ const buildLanguageCodeReplyOptions = (
 
   return {
     reply_markup: {
-      inline_keyboard: [buttons],
+      inline_keyboard: [...buttons.map((b) => [b]), pagination],
     },
   };
 };

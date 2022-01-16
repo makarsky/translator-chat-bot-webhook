@@ -4,6 +4,7 @@ const translate = require('@vitalets/google-translate-api');
 const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
 const Sentry = require('@sentry/node');
+const mappedLanguages = require('@vitalets/google-translate-api/languages');
 const redisClient = require('./redisClient');
 const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
@@ -120,10 +121,7 @@ bot.on('callback_query', async (callback) => {
     const itemsPerPage = inlineButtonsBuilder.maxNumberOfInlineButtons - 2;
     const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
     const offset = data.page * itemsPerPage;
-    let languageCodes = availableLanguages
-      .slice(offset, offset + itemsPerPage)
-      .map((l) => l.code);
-
+    let languages = availableLanguages.slice(offset, offset + itemsPerPage);
     let previousPage;
     let nextPage;
 
@@ -131,10 +129,9 @@ bot.on('callback_query', async (callback) => {
     const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
     if (data.page === -1) {
-      languageCodes = lastUsedLanguageCodes.slice(
-        0,
-        inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
-      );
+      languages = lastUsedLanguageCodes
+        .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
+        .map((code) => ({ code, language: mappedLanguages[code] }));
       nextPage = 0;
     } else if (data.page === 0) {
       nextPage = data.page + 1;
@@ -153,7 +150,7 @@ bot.on('callback_query', async (callback) => {
       chat_id: message.chat.id,
       message_id: message.message_id,
       ...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-        languageCodes,
+        languages,
         'targetLanguageCode',
         data.userLocale,
         previousPage,
