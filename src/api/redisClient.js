@@ -16,4 +16,5 @@ module.exports = {
     (await redisClient.json.get(`${chatId}`)) || {},
   setChatSettingsById: async (chatId, key, data) =>
     redisClient.json.set(`${chatId}`, key, data),
+  flushAll: async () => redisClient.flushAll(),
 };

@@ -43,19 +43,19 @@ const setTargetLanguageHandler = async function (message) {
 const botCommands = [
   {
     regExp: /\/start/,
-    description: 'Set target language',
+    description: 'commandDescriptionSetTargetLanguage',
     hidden: true,
     handler: setTargetLanguageHandler,
   },
   {
     regExp: /\/set_target_language/,
-    description: 'Set target language',
+    description: 'commandDescriptionSetTargetLanguage',
     hidden: false,
     handler: setTargetLanguageHandler,
   },
   {
     regExp: /\/about/,
-    description: 'About',
+    description: 'commandDescriptionAbout',
     hidden: false,
     async handler(message) {
       const chatSettings = await redisClient.getChatSettingsById(
@@ -81,7 +81,7 @@ const botCommands = [
   },
   {
     regExp: /\/set_interface_language/,
-    description: 'Set interface language',
+    description: 'commandDescriptionSetInterfaceLanguage',
     hidden: false,
     async handler(message) {
       const chatSettings = await redisClient.getChatSettingsById(
