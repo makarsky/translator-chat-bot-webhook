@@ -9,7 +9,7 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"./**/*.js\"",
     "lintFix": "eslint --fix './**/*.js'",
-    "heroku-prebuild": "heroku config:set GIT_TAG=`git describe --tags`"
+    "pre-push": "heroku config:set GIT_TAG=`git describe --tags`"
   },
   "author": "Igor Makarsky",
   "license": "MIT",
