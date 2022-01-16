@@ -8,8 +8,6 @@ const actions = {
   start: 'start',
   setTargetLanguage: 'setTargetLanguage',
   targetLanguageSelected: 'targetLanguageSelected',
-  setInterfaceLanguage: 'setInterfaceLanguage',
-  interfaceLanguageSelected: 'interfaceLanguageSelected',
   translate: 'translate',
   listen: 'listen',
   about: 'about',

@@ -19,13 +19,11 @@ const setTargetLanguageHandler = async function (message) {
 
   this.sendMessage(
     message.chat.id,
-    i18n.t(
-      'chooseTargetLanguage',
-      chatSettings.interfaceLanguageCode || message.from.language_code,
-    ),
+    i18n.t('chooseTargetLanguage', message.from.language_code),
     inlineButtonsBuilder.buildLanguageCodeReplyOptions(
       languageCodes,
       'targetLanguageCode',
+      message.from.language_code,
       undefined,
       lastUsedLanguageCodes.length > 0 ? 0 : 1,
     ),
@@ -58,17 +56,12 @@ const botCommands = [
     description: 'commandDescriptionAbout',
     hidden: false,
     async handler(message) {
-      const chatSettings = await redisClient.getChatSettingsById(
-        message.chat.id,
-      );
       // https://core.telegram.org/bots/api#formatting-options
       this.sendMessage(
         message.chat.id,
-        i18n.t(
-          'about',
-          chatSettings.interfaceLanguageCode || message.from.language_code,
-          ['https://github.com/makarsky/translator-chat-bot-webhook'],
-        ),
+        i18n.t('about', message.from.language_code, [
+          'https://github.com/makarsky/translator-chat-bot-webhook',
+        ]),
         { parse_mode: 'MarkdownV2' },
       );
 
@@ -76,33 +69,6 @@ const botCommands = [
         message.from.id,
         googleUa.categories.translator,
         googleUa.actions.about,
-      );
-    },
-  },
-  {
-    regExp: /\/set_interface_language/,
-    description: 'commandDescriptionSetInterfaceLanguage',
-    hidden: false,
-    async handler(message) {
-      const chatSettings = await redisClient.getChatSettingsById(
-        message.chat.id,
-      );
-      this.sendMessage(
-        message.chat.id,
-        i18n.t(
-          'chooseInterfaceLanguage',
-          chatSettings.interfaceLanguageCode || message.from.language_code,
-        ),
-        inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-          Object.keys(i18n.chooseTargetLanguage),
-          'interfaceLanguageCode',
-        ),
-      );
-
-      googleUa.event(
-        message.from.id,
-        googleUa.categories.translator,
-        googleUa.actions.setInterfaceLanguage,
       );
     },
   },

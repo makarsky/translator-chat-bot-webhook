@@ -66,6 +66,8 @@ bot.on('callback_query', async (callback) => {
     return;
   }
 
+  // Warning! There is no message.from.language_code in the callback_query.
+  // Use callback.data.userLocale instead.
   const { message } = callback;
 
   Sentry.setUser({ id: message.chat.id });
@@ -103,37 +105,9 @@ bot.on('callback_query', async (callback) => {
     );
 
     bot.editMessageText(
-      i18n.t(
-        'targetLanguageStatus',
-        chatSettings.interfaceLanguageCode || message.from.language_code,
-        [targetLanguage, data.targetLanguageCode],
-      ),
-      {
-        chat_id: message.chat.id,
-        message_id: message.message_id,
-      },
-    );
-  }
-
-  // Target language selected callback
-  if (data.interfaceLanguageCode !== undefined) {
-    const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
-    chatSettings.interfaceLanguageCode = data.interfaceLanguageCode;
-    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
-
-    const interfaceLanguage = codeLanguageMap[data.interfaceLanguageCode];
-
-    googleUa.event(
-      message.from.id,
-      googleUa.categories.translator,
-      googleUa.actions.interfaceLanguageSelected,
-      data.interfaceLanguageCode,
-    );
-
-    bot.editMessageText(
-      i18n.t('interfaceLanguageStatus', data.interfaceLanguageCode, [
-        interfaceLanguage,
-        data.interfaceLanguageCode,
+      i18n.t('targetLanguageStatus', data.userLocale, [
+        targetLanguage,
+        data.targetLanguageCode,
       ]),
       {
         chat_id: message.chat.id,
@@ -175,22 +149,17 @@ bot.on('callback_query', async (callback) => {
       previousPage = data.page - 1;
     }
 
-    bot.editMessageText(
-      i18n.t(
-        'chooseTargetLanguage',
-        chatSettings.interfaceLanguageCode || message.from.language_code,
+    bot.editMessageText(i18n.t('chooseTargetLanguage', data.userLocale), {
+      chat_id: message.chat.id,
+      message_id: message.message_id,
+      ...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
+        languageCodes,
+        'targetLanguageCode',
+        data.userLocale,
+        previousPage,
+        nextPage,
       ),
-      {
-        chat_id: message.chat.id,
-        message_id: message.message_id,
-        ...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-          languageCodes,
-          'targetLanguageCode',
-          previousPage,
-          nextPage,
-        ),
-      },
-    );
+    });
   }
 
   if (data.translationAction !== undefined) {
@@ -272,6 +241,7 @@ bot.on('message', async (message) => {
           .map((l) => l.code)
           .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 2),
         'targetLanguageCode',
+        message.from.language_code,
         undefined,
         1,
       ),
@@ -284,10 +254,7 @@ bot.on('message', async (message) => {
   try {
     if (lastUsedLanguageCodes.length === 0) {
       requestTargetLanguage(
-        i18n.t(
-          'chooseTargetLanguage',
-          chatSettings.interfaceLanguageCode || message.from.language_code,
-        ),
+        i18n.t('chooseTargetLanguage', message.from.language_code),
       );
       return;
     }
@@ -298,10 +265,7 @@ bot.on('message', async (message) => {
     if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
       if (lastUsedLanguageCodes.length === 1) {
         requestTargetLanguage(
-          i18n.t(
-            'unsuitableTargetLanguage',
-            chatSettings.interfaceLanguageCode || message.from.language_code,
-          ),
+          i18n.t('unsuitableTargetLanguage', message.from.language_code),
         );
         return;
       }
@@ -332,10 +296,7 @@ bot.on('message', async (message) => {
       googleTextToSpeechLanguages.findByCode(targetLanguage)
     ) {
       actionButtons.push({
-        text: i18n.t(
-          'listen',
-          chatSettings.interfaceLanguageCode || message.from.language_code,
-        ),
+        text: i18n.t('listen', message.from.language_code),
         callback_data: JSON.stringify({
           translationAction: translationActionListen,
         }),
