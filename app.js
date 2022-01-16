@@ -7,7 +7,7 @@ if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
   Sentry.init({
     enabled: process.env.SENTRY_ENABLED === 'true',
     environment: process.env.ENVIRONMENT,
-    release: process.env.GIT_TAG,
+    release: process.env.HEROKU_RELEASE_VERSION || process.env.GIT_TAG,
     dsn: `https://${process.env.SENTRY_PUBLIC_KEY}@o1116734.ingest.sentry.io/${process.env.SENTRY_PROJECT_ID}`,
     integrations: [new Sentry.Integrations.Http({ tracing: true })],
     tracesSampleRate: 1.0,

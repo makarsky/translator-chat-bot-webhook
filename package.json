@@ -8,8 +8,7 @@
     "dev": "nodemon --exec \"npm run lint && node app.js\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"./**/*.js\"",
-    "lintFix": "eslint --fix './**/*.js'",
-    "pre-push": "heroku config:set GIT_TAG=`git describe --tags`"
+    "lintFix": "eslint --fix './**/*.js'"
   },
   "author": "Igor Makarsky",
   "license": "MIT",
