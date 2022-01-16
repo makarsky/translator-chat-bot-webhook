@@ -62,36 +62,6 @@ router.post('/', async (req, res) => {
   res.sendStatus(200);
 });
 
-router.get('/test', async (req, res) => {
-  const text = 'Hello friend';
-
-  Object.keys(mappedLanguages).forEach(async (lang) => {
-    if (
-      ['ru', 'auto', 'isSupported', 'getCode'].includes(lang) ||
-      !googleTextToSpeechLanguages.findByCode(lang)
-    )
-      return;
-    const translation = await translate(text, { to: lang });
-    const audioLang = googleTextToSpeechLanguages.findByCode(lang);
-    let audioUrl = '';
-    try {
-      audioUrl = googleTTS.getAudioUrl(translation.text, {
-        lang: audioLang,
-        slow: false,
-        host: 'https://translate.google.com',
-      });
-
-      await bot.sendAudio(294638656, audioUrl, {
-        caption: translation.text,
-      });
-    } catch (e) {
-      console.log(`${lang} ${audioLang} doesnt work`);
-    }
-  });
-
-  res.sendStatus(200);
-});
-
 bot.on('callback_query', async (callback) => {
   if (!callback.data || !callback.message) {
     return;
