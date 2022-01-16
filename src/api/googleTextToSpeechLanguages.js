@@ -2,7 +2,7 @@
 const languageCodes = [
   'af-ZA',
   'sq-AL',
-  'am-ET',
+  // 'am-ET', // 400 HTTP error from google
   'ar-DZ',
   'ar-BH',
   'ar-EG',
@@ -20,8 +20,8 @@ const languageCodes = [
   'ar-AE',
   'ar-YE',
   'hy-AM',
-  'az-AZ',
-  'eu-ES',
+  // 'az-AZ', // 400 HTTP error from google
+  // 'eu-ES', // 400 HTTP error from google
   'bn-BD',
   'bn-IN',
   'bs-BA',
@@ -29,8 +29,8 @@ const languageCodes = [
   'my-MM',
   'ca-ES',
   'yue-Hant-HK',
-  'zh (cmn-Hans-CN)',
-  'zh-TW (cmn-Hant-TW)',
+  'zh',
+  'zh-TW',
   'hr-HR',
   'cs-CZ',
   'da-DK',
@@ -59,8 +59,8 @@ const languageCodes = [
   // 'fr-CA',
   'fr-FR',
   // 'fr-CH',
-  'gl-ES',
-  'ka-GE',
+  // 'gl-ES', // 400 HTTP error from google
+  // 'ka-GE', // 400 HTTP error from google
   // 'de-AT',
   'de-DE',
   // 'de-CH',
@@ -76,30 +76,30 @@ const languageCodes = [
   'ja-JP',
   'jv-ID',
   'kn-IN',
-  // 'kk-KZ', doesn't work
+  // 'kk-KZ', // 400 HTTP error from google
   'km-KH',
   'ko-KR',
-  'lo-LA',
+  // 'lo-LA', // 400 HTTP error from google
   'lv-LV',
-  'lt-LT',
+  // 'lt-LT', // 400 HTTP error from google
   'mk-MK',
   'ms-MY',
   'ml-IN',
   'mr-IN',
-  'mn-MN',
+  // 'mn-MN', // 400 HTTP error from google
   'ne-NP',
   'no-NO',
-  'fa-IR',
+  // 'fa-IR', // 400 HTTP error from google
   'pl-PL',
   'pt-BR',
   'pt-PT',
-  'pa-Guru-IN',
+  // 'pa-Guru-IN', // 400 HTTP error from google
   'ro-RO',
   'ru-RU',
   'sr-RS',
   'si-LK',
   'sk-SK',
-  'sl-SI',
+  // 'sl-SI', // 400 HTTP error from google
   // 'es-AR',
   // 'es-BO',
   // 'es-CL',
@@ -134,14 +134,20 @@ const languageCodes = [
   'uk-UA',
   'ur-IN',
   'ur-PK',
-  'uz-UZ',
+  // 'uz-UZ', // 400 HTTP error from google
   'vi-VN',
-  'zu-ZA',
+  // 'zu-ZA', // 400 HTTP error from google
 ];
 
 const findByCode = (code) => {
   // eslint-disable-next-line no-restricted-syntax
   for (const languageCode of languageCodes) {
+    if (code === 'zh-CN') {
+      return 'zh';
+    }
+    if (code === 'zh-TW') {
+      return 'zh-TW';
+    }
     if (languageCode.indexOf(code) === 0) {
       return languageCode;
     }
