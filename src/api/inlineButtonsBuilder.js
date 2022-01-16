@@ -2,13 +2,17 @@ const maxNumberOfInlineButtons = 8;
 
 const buildLanguageCodeReplyOptions = (
   languageCodes,
-  callbackParameter = 'targetLanguageCode',
+  callbackParameter,
+  userLocale,
   previosPage = undefined,
   nextPage = undefined,
 ) => {
   const buttons = languageCodes.map((code) => ({
     text: code,
-    callback_data: JSON.stringify({ [callbackParameter]: code }),
+    callback_data: JSON.stringify({
+      [callbackParameter]: code,
+      userLocale,
+    }),
   }));
 
   // https://core.telegram.org/bots#pressing-buttons
@@ -18,6 +22,7 @@ const buildLanguageCodeReplyOptions = (
       callback_data: JSON.stringify({
         page: nextPage,
         parameter: callbackParameter,
+        userLocale,
       }),
     });
   }
@@ -27,6 +32,7 @@ const buildLanguageCodeReplyOptions = (
       callback_data: JSON.stringify({
         page: previosPage,
         parameter: callbackParameter,
+        userLocale,
       }),
     });
   }
