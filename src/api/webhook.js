@@ -77,6 +77,10 @@ bot.on('callback_query', async (callback) => {
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
       filterDuplicatesCallback,
     );
+    lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
+      0,
+      inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
+    );
 
     await redisClient.setChatSettingsById(
       message.chat.id,
@@ -309,6 +313,10 @@ bot.on('message', async (message) => {
     );
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
       filterDuplicatesCallback,
+    );
+    lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
+      0,
+      inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
     );
     chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
     chatSettings.updatedAtTimestamp = Date.now();
