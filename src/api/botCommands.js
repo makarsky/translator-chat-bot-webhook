@@ -1,3 +1,4 @@
+const mappedLanguages = require('@vitalets/google-translate-api/languages');
 const googleUa = require('../analytics/google-ua');
 const redisClient = require('./redisClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
@@ -7,21 +8,21 @@ const availableLanguages = require('./availableLanguages');
 const setTargetLanguageHandler = async function (message) {
   const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
   const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
-  const languageCodes =
+  const languages =
     lastUsedLanguageCodes.length > 0
-      ? lastUsedLanguageCodes.slice(
+      ? lastUsedLanguageCodes
+          .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
+          .map((code) => ({ code, language: mappedLanguages[code] }))
+      : availableLanguages.slice(
           0,
-          inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
-        )
-      : availableLanguages
-          .map((l) => l.code)
-          .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 2);
+          inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
+        );
 
   this.sendMessage(
     message.chat.id,
     i18n.t('chooseTargetLanguage', message.from.language_code),
     inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-      languageCodes,
+      languages,
       'targetLanguageCode',
       message.from.language_code,
       undefined,
