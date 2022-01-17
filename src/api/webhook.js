@@ -294,13 +294,24 @@ bot.on('message', async (message) => {
       });
     }
 
+    if (translation.from.text.didYouMean) {
+      await bot.sendMessage(
+        message.chat.id,
+        i18n.t('didYouMean', message.from.language_code, [
+          translation.from.text.value,
+        ]),
+      );
+
+      // Force auto-corrected source text translation.
+      translation = await translate(
+        translation.from.text.value.replace(/[[\]]/g, ''),
+        { to: targetLanguageCode },
+      );
+    }
+
     await bot.sendMessage(
       message.chat.id,
-      `${
-        translation.from.text.didYouMean
-          ? `${translation.from.text.value}\n`
-          : ''
-      }${translation.text}`,
+      translation.text,
       actionButtons.length > 0
         ? {
             reply_markup: {
