@@ -161,17 +161,11 @@ bot.on('callback_query', async (callback) => {
 
   if (data.translationAction !== undefined) {
     if (data.translationAction === translationActionListen) {
-      const chatSettings = await redisClient.getChatSettingsById(
-        message.chat.id,
-      );
-      const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
       let audioUrl = '';
 
       try {
         audioUrl = googleTTS.getAudioUrl(message.text, {
-          lang: googleTextToSpeechLanguages.findByCode(
-            lastUsedLanguageCodes[0],
-          ),
+          lang: data.audioLanguageCode,
           slow: false,
           host: 'https://translate.google.com',
         });
@@ -195,14 +189,14 @@ bot.on('callback_query', async (callback) => {
           'audioUrl error',
           message.text,
           audioUrl,
-          lastUsedLanguageCodes,
+          data.audioLanguageCode,
         );
 
         Sentry.captureException(e, {
           contexts: {
             audioUrlError: {
               chatId: message.chat.id,
-              lastUsedLanguageCodes,
+              audioLanguageCode: data.audioLanguageCode,
             },
           },
         });
@@ -256,8 +250,8 @@ bot.on('message', async (message) => {
       return;
     }
 
-    let targetLanguage = lastUsedLanguageCodes[0];
-    let translation = await translate(message.text, { to: targetLanguage });
+    let targetLanguageCode = lastUsedLanguageCodes[0];
+    let translation = await translate(message.text, { to: targetLanguageCode });
 
     if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
       if (lastUsedLanguageCodes.length === 1) {
@@ -267,12 +261,12 @@ bot.on('message', async (message) => {
         return;
       }
       // eslint-disable-next-line prefer-destructuring
-      targetLanguage = lastUsedLanguageCodes[1];
-      translation = await translate(message.text, { to: targetLanguage });
+      targetLanguageCode = lastUsedLanguageCodes[1];
+      translation = await translate(message.text, { to: targetLanguageCode });
     }
 
     lastUsedLanguageCodes.unshift(
-      targetLanguage,
+      targetLanguageCode,
       translation.from.language.iso,
     );
     lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
@@ -287,15 +281,15 @@ bot.on('message', async (message) => {
     await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
 
     const actionButtons = [];
+    const audioLanguageCode =
+      googleTextToSpeechLanguages.findByCode(targetLanguageCode);
 
-    if (
-      translation.text.length < maxTextToSpeechLength &&
-      googleTextToSpeechLanguages.findByCode(targetLanguage)
-    ) {
+    if (translation.text.length < maxTextToSpeechLength && audioLanguageCode) {
       actionButtons.push({
         text: i18n.t('listen', message.from.language_code),
         callback_data: JSON.stringify({
           translationAction: translationActionListen,
+          audioLanguageCode,
         }),
       });
     }
@@ -320,7 +314,7 @@ bot.on('message', async (message) => {
       message.from.id,
       googleUa.categories.translator,
       googleUa.actions.translate,
-      targetLanguage,
+      targetLanguageCode,
     );
   } catch (e) {
     console.error('onMessage handler error', e);
