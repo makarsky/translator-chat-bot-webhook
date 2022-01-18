@@ -1,54 +1,143 @@
 <!DOCTYPE html>
 <html lang="en">
-   <head>
-      <title>About Sharks</title>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
-      <link href="css/styles.css" rel="stylesheet">
-      <link href='https://fonts.googleapis.com/css?family=Merriweather:400,700' rel='stylesheet' type='text/css'>
-      <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
-      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
-   </head>
-   <body>
-      <nav class="navbar navbar-inverse navbar-static-top">
-         <div class="container">
-            <div class="navbar-header">
-               <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1" aria-expanded="false">
-               <span class="sr-only">Toggle navigation</span>
-               <span class="icon-bar"></span>
-               <span class="icon-bar"></span>
-               <span class="icon-bar"></span>
-               </button>
-               <a class="navbar-brand" href="#">Everything Sharks</a>
-            </div>
-            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-               <ul class="nav navbar-nav mr-auto">
-                  <li class="active"><a href="/">Home</a></li>
-                  <li><a href="/sharks">Sharks</a></li>
-               </ul>
-            </div>
+
+<head>
+   <meta charset="UTF-8">
+   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+   <meta http-equiv="X-UA-Compatible" content="ie=edge">
+   <title>Translator Chat Bot (Telegram)</title>
+   <meta name="author" content="Igor Makarsy">
+   <meta name="description" content="Translator chat bot for Telegram built with node.js and express.js">
+   <meta name="keywords" content="translator,chat-bot, telegram">
+   <link href="https://afeld.github.io/emoji-css/emoji.css" rel="stylesheet">
+   <script src="https://cdn.tailwindcss.com"></script>
+   <script src="js/main.js"></script>
+</head>
+
+<body class="font-sans leading-normal tracking-normal">
+
+   <nav class="bg-blue-900 p-2 mt-0 w-full">
+      <div class="container mx-auto flex flex-wrap items-center">
+         <div class="flex w-full justify-center text-white font-extrabold">
+            <span class="no-underline text-white">
+               <span class="text-2xl pl-2"><i class="em em-robot_face" aria-role="presentation"
+                     aria-label="ROBOT FACE"></i> Translator Chat Bot</span>
+            </span>
          </div>
-      </nav>
-      <div class="jumbotron">
-         <div class="container">
-            <h1>Want to Learn About Sharks?</h1>
-            <p>Are you ready to learn about sharks?</p>
-            <br>
-            <p><a class="btn btn-primary btn-lg" href="/sharks" role="button">Get Shark Info</a></p>
-         </div>
-      </div>
-      <div class="container">
-         <div class="row">
-            <div class="col-md-6">
-               <h3>Not all sharks are alike</h3>
-               <p>Though some are dangerous, sharks generally do not attack humans. Out of the 500 species known to researchers, only 30 have been known to attack humans.</p>
-            </div>
-            <div class="col-md-6">
-               <h3>Sharks are ancient</h3>
-               <p>There is evidence to suggest that sharks lived up to 400 million years ago.</p>
-            </div>
+         <div class="flex w-full pt-2 sm:pt-0 content-center justify-between md:w-1/2 px-12 md:pr-24">
+            <ul id="menu" class="list-reset flex justify-between flex-1 md:flex-none items-center">
+               <li class="mr-3">
+                  <a class="inline-block text-white hover:text-gray-100 hover:underline py-2 px-4"
+                     href="https://github.com/makarsky/translator-chat-bot-webhook">GitHub</a>
+               </li>
+               <li class="mr-3">
+                  <a class="telegram inline-block text-white hover:text-gray-100 hover:underline py-2 px-4"
+                     href="https://t.me/ProTranslatorBot">Try it</a>
+               </li>
+            </ul>
          </div>
       </div>
-   </body>
+   </nav>
+
+   <div class="container mx-auto flex flex-col md:flex-row items-center mt-12">
+      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pb-12 md:pb-0 px-6 sm:px-12 md:pl-12">
+         <h1 class="font-bold text-3xl my-4">Taking translations to a whole new level</h1>
+         <p class="leading-normal mb-4">This is a Telegram chat bot and it can translate your messages to any of 105
+            languages <i class="em em-partying_face" aria-role="presentation"
+               aria-label="FACE WITH PARTY HORN AND PARTY HAT"></i></p>
+         <p class="leading-normal mb-4">The nice pagination feature was made to make your experience better and faster.
+            7 recently used
+            languages
+            are always listed on the first page.
+         </p>
+         <p class="leading-normal mb-4">Tech stack: Node.js, Express, JavaScript,
+            Telegram API, Translate API, Text-To-Speech API, Heroku
+            <i class="em em-grinning" aria-role="presentation" aria-label="GRINNING FACE"></i>
+         </p>
+         <a class="telegram bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
+            href="https://t.me/ProTranslatorBot">Try it</a>
+      </div>
+      <div class="w-full lg:w-1/2 lg:pt-6">
+         <div class="w-full lg:w-4/5 flex justify-center">
+            <img src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png" alt="">
+         </div>
+      </div>
+
+   </div>
+
+   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
+      <div class="hidden md:block w-full lg:w-1/2 lg:py-6 text-center">
+         <div class="w-full mx-auto">
+            <img src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="">
+         </div>
+      </div>
+      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
+         <h1 class="font-bold text-3xl my-4">Awesome features</h1>
+         <p class="leading-normal mb-4">You can forward messages from other chats and use text-to-speech (up to 200
+            characters; not for all languages).</p>
+         <p class="leading-normal mb-4">It is completely free!
+            <i class="em em-scream_cat"></i>
+         </p>
+      </div>
+      <div class="md:hidden w-full lg:w-1/2 lg:py-6 pt-12">
+         <div class="w-full flex justify-center">
+            <img src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="">
+         </div>
+      </div>
+
+   </div>
+
+   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
+      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
+         <h1 class="font-bold text-3xl my-4">Attention to details</h1>
+         <p class="leading-normal mb-4">You don't have to manually switch between 2 recently used languages. The chat
+            bot does it for
+            you automagically <i class="em em-tophat" aria-role="presentation" aria-label="TOP HAT"></i></p>
+      </div>
+      <div class="md:block w-full lg:w-1/2 lg:py-6">
+         <div class="w-full flex justify-center">
+            <img src="https://dl.dropboxusercontent.com/s/y0fpd4y5t93hkhv/3.png" alt="">
+         </div>
+      </div>
+
+   </div>
+
+   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
+      <div class="hidden md:block w-full lg:w-1/2 lg:py-6 text-center">
+         <div class="w-full mx-auto">
+            <img src="https://dl.dropboxusercontent.com/s/fbqezc8vnbkaxrw/4.1.png" alt="">
+         </div>
+      </div>
+      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
+         <h1 class="font-bold text-3xl my-4">4 interface languages</h1>
+         <p class="leading-normal mb-4">The bot has only 4 interface languages at the moment. You can become a
+            contributor by adding a new interface language!</p>
+      </div>
+      <div class="md:hidden w-full lg:w-1/2 lg:py-6 pt-12">
+         <div class="w-full flex justify-center">
+            <img src="https://dl.dropboxusercontent.com/s/fbqezc8vnbkaxrw/4.1.png" alt="">
+         </div>
+      </div>
+
+   </div>
+
+   <div class="container mx-auto flex flex-col md:flex-row items-center my-12 justify-center">
+      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
+         <p class="leading-normal mb-4">The bot uses the unofficial google translate API <i class="em em-neutral_face"
+               aria-role="presentation" aria-label="NEUTRAL FACE"></i>, so sometimes a translated text may differ from
+            translate.google.com. Generally speaking, translation is ok <i class="em em-ok_hand"
+               aria-role="presentation" aria-label="OK HAND SIGN"></i></p>
+         <p class="leading-normal mb-4">Enough words, here's the chat bot link:</p>
+         <a class="telegram bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
+            href="https://t.me/ProTranslatorBot">Try it</a>
+      </div>
+   </div>
+
+   <div id="footer" class="py-6 md:py-6 px-6 bg-blue-900">
+      <p class="text-center text-white">Made with <i class="em em-hammer_and_pick" aria-role="presentation"
+            aria-label=""></i> by <a href="https://www.sololearn.com/Profile/779917/?ref=app">Igor Makarsky</a></p>
+   </div>
+
+</body>
+
 </html>
