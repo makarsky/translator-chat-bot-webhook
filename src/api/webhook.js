@@ -302,7 +302,7 @@ bot.on('message', async (message) => {
         ]),
       );
 
-      // Force auto-corrected source text translation.
+      // Force auto-corrected source-text translation.
       translation = await translate(
         translation.from.text.value.replace(/[[\]]/g, ''),
         { to: targetLanguageCode },

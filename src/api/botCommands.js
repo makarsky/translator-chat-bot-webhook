@@ -6,7 +6,23 @@ const i18n = require('../localization/i18n');
 const availableLanguages = require('./availableLanguages');
 
 const setTargetLanguageHandler = async function (message) {
+  await redisClient.flushAll();
   const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  // Retrieve source information (github, facebook etc).
+  const sourceData = message.text.match(/\/start (\w+)/);
+
+  if (chatSettings.source === undefined) {
+    chatSettings.source = sourceData ? sourceData[1] : 'organic';
+    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
+
+    googleUa.event(
+      message.from.id,
+      googleUa.categories.translator,
+      googleUa.actions.start,
+      chatSettings.source,
+    );
+  }
+
   const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
   const languages =
     lastUsedLanguageCodes.length > 0
@@ -30,13 +46,13 @@ const setTargetLanguageHandler = async function (message) {
     ),
   );
 
-  googleUa.event(
-    message.from.id,
-    googleUa.categories.translator,
-    message.text.match(/\/start/)
-      ? googleUa.actions.start
-      : googleUa.actions.setTargetLanguage,
-  );
+  if (message.text.match(/\/set_target_language/)) {
+    googleUa.event(
+      message.from.id,
+      googleUa.categories.translator,
+      googleUa.actions.setTargetLanguage,
+    );
+  }
 };
 
 const botCommands = [
