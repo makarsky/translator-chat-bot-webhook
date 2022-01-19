@@ -122,6 +122,7 @@ bot.on('callback_query', async (callback) => {
         },
       );
     } catch (e) {
+      console.log('targetLanguageStatus duplicate');
       Sentry.captureException(e, {
         contexts: {
           editMessageTextError: {
@@ -177,6 +178,7 @@ bot.on('callback_query', async (callback) => {
         },
       );
     } catch (e) {
+      console.log('chooseTargetLanguage duplicate');
       Sentry.captureException(e, {
         contexts: {
           editMessageTextError: {
@@ -214,10 +216,11 @@ bot.on('callback_query', async (callback) => {
             message_id: message.message_id,
           });
         } catch (e) {
+          console.log('translationActionListen duplicate');
           Sentry.captureException(e, {
             contexts: {
               editMessageTextError: {
-                text: 'chooseTargetLanguage',
+                text: 'translationActionListen',
               },
             },
           });
