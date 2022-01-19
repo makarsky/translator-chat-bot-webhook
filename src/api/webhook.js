@@ -1,7 +1,6 @@
 const express = require('express');
 const TelegramBot = require('node-telegram-bot-api');
 const translate = require('@vitalets/google-translate-api');
-const codeLanguageMap = require('@vitalets/google-translate-api/languages');
 const googleTTS = require('google-tts-api');
 const Sentry = require('@sentry/node');
 const mappedLanguages = require('@vitalets/google-translate-api/languages');
@@ -101,7 +100,7 @@ bot.on('callback_query', async (callback) => {
 
     await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
 
-    const targetLanguage = codeLanguageMap[data.targetLanguageCode];
+    const targetLanguage = mappedLanguages[data.targetLanguageCode];
 
     googleUa.event(
       message.from.id,
