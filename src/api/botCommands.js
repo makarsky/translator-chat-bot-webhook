@@ -6,7 +6,6 @@ const i18n = require('../localization/i18n');
 const availableLanguages = require('./availableLanguages');
 
 const setTargetLanguageHandler = async function (message) {
-  await redisClient.flushAll();
   const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
   // Retrieve source information (github, facebook etc).
   const sourceData = message.text.match(/\/start (\w+)/);
