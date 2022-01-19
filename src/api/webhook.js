@@ -19,6 +19,11 @@ const bot = new TelegramBot(process.env.TOKEN, { polling: true });
 
 const maxTextToSpeechLength = 200;
 const translationActionListen = 'listen';
+const animulzStickers = [
+  'CAACAgEAAxkBAAIG8WHoMt88uW2Hoqt45qJ62WwZJNpvAAJ6EAACmX-IAqU-3GtbhUNmIwQ',
+  'CAACAgEAAxkBAAIGy2HoLwq3HGMXq3_U7-aekcwx2SzIAAJ2DwACmX-IAu5NP0uH4Y2nIwQ',
+  'CAACAgEAAxkBAAIGzGHoLyw5Kzy9XxND2_mWGwGBpP-KAAI7FAACmX-IArz-u6pndvuMIwQ',
+];
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
 
@@ -245,20 +250,15 @@ bot.on('callback_query', async (callback) => {
 });
 
 bot.on('message', async (message) => {
-  try {
-    if (botCommands.some((command) => message.text.match(command.regExp))) {
-      return;
-    }
-  } catch (e) {
-    // in case message.text === undefined
-    Sentry.setUser({ id: message.chat.id });
-    Sentry.captureException(e, {
-      contexts: {
-        onMessageError: {
-          message,
-        },
-      },
-    });
+  if (message.text === undefined) {
+    await bot.sendSticker(
+      message.chat.id,
+      animulzStickers.at(Math.floor(Math.random() * animulzStickers.length)),
+    );
+    return;
+  }
+
+  if (botCommands.some((command) => message.text.match(command.regExp))) {
     return;
   }
 
