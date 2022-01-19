@@ -212,7 +212,20 @@ bot.on('callback_query', async (callback) => {
 });
 
 bot.on('message', async (message) => {
-  if (botCommands.some((command) => message.text.match(command.regExp))) {
+  try {
+    if (botCommands.some((command) => message.text.match(command.regExp))) {
+      return;
+    }
+  } catch (e) {
+    // in case message.text === undefined
+    Sentry.setUser({ id: message.chat.id });
+    Sentry.captureException(e, {
+      contexts: {
+        onMessageError: {
+          message,
+        },
+      },
+    });
     return;
   }
 
@@ -223,14 +236,15 @@ bot.on('message', async (message) => {
     name: 'message',
   });
 
-  const requestTargetLanguage = (text) => {
-    bot.sendMessage(
+  const requestTargetLanguage = async (text) => {
+    await bot.sendMessage(
       message.chat.id,
       text,
       inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-        availableLanguages
-          .map((l) => l.code)
-          .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 2),
+        availableLanguages.slice(
+          0,
+          inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
+        ),
         'targetLanguageCode',
         message.from.language_code,
         undefined,
