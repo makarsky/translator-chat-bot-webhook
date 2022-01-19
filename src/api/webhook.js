@@ -105,16 +105,26 @@ bot.on('callback_query', async (callback) => {
       data.targetLanguageCode,
     );
 
-    bot.editMessageText(
-      i18n.t('targetLanguageStatus', data.userLocale, [
-        targetLanguage,
-        data.targetLanguageCode,
-      ]),
-      {
-        chat_id: message.chat.id,
-        message_id: message.message_id,
-      },
-    );
+    try {
+      await bot.editMessageText(
+        i18n.t('targetLanguageStatus', data.userLocale, [
+          targetLanguage,
+          data.targetLanguageCode,
+        ]),
+        {
+          chat_id: message.chat.id,
+          message_id: message.message_id,
+        },
+      );
+    } catch (e) {
+      Sentry.captureException(e, {
+        contexts: {
+          editMessageTextError: {
+            text: 'targetLanguageStatus',
+          },
+        },
+      });
+    }
   }
 
   if (data.page !== undefined) {
@@ -146,17 +156,30 @@ bot.on('callback_query', async (callback) => {
       previousPage = data.page - 1;
     }
 
-    bot.editMessageText(i18n.t('chooseTargetLanguage', data.userLocale), {
-      chat_id: message.chat.id,
-      message_id: message.message_id,
-      ...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
-        languages,
-        'targetLanguageCode',
-        data.userLocale,
-        previousPage,
-        nextPage,
-      ),
-    });
+    try {
+      await bot.editMessageText(
+        i18n.t('chooseTargetLanguage', data.userLocale),
+        {
+          chat_id: message.chat.id,
+          message_id: message.message_id,
+          ...inlineButtonsBuilder.buildLanguageCodeReplyOptions(
+            languages,
+            'targetLanguageCode',
+            data.userLocale,
+            previousPage,
+            nextPage,
+          ),
+        },
+      );
+    } catch (e) {
+      Sentry.captureException(e, {
+        contexts: {
+          editMessageTextError: {
+            text: 'chooseTargetLanguage',
+          },
+        },
+      });
+    }
   }
 
   if (data.translationAction !== undefined) {
@@ -180,10 +203,20 @@ bot.on('callback_query', async (callback) => {
           googleUa.actions.listen,
         );
 
-        bot.editMessageText(message.text, {
-          chat_id: message.chat.id,
-          message_id: message.message_id,
-        });
+        try {
+          await bot.editMessageText(message.text, {
+            chat_id: message.chat.id,
+            message_id: message.message_id,
+          });
+        } catch (e) {
+          Sentry.captureException(e, {
+            contexts: {
+              editMessageTextError: {
+                text: 'chooseTargetLanguage',
+              },
+            },
+          });
+        }
       } catch (e) {
         console.log(
           'audioUrl error',
