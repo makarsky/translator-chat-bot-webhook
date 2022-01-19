@@ -8,6 +8,6 @@ Object.keys(languages).forEach((key) => {
   }
 });
 
-availableLanguages.sort((a, b) => a.code.localeCompare(b.code));
+availableLanguages.sort((a, b) => a.language.localeCompare(b.language));
 
 module.exports = availableLanguages;
