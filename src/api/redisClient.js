@@ -6,7 +6,6 @@ const redisClient = redis.createClient({
   password: process.env.REDIS_PASSWORD,
 });
 redisClient.on('error', (e) => {
-  console.log('Redis redisClient Error', e);
   Sentry.captureException(e);
 });
 redisClient.connect();
@@ -16,5 +15,4 @@ module.exports = {
     (await redisClient.json.get(`${chatId}`)) || {},
   setChatSettingsById: async (chatId, key, data) =>
     redisClient.json.set(`${chatId}`, key, data),
-  flushAll: async () => redisClient.flushAll(),
 };
