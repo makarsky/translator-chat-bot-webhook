@@ -255,7 +255,7 @@ bot.on('message', async (message) => {
   if (message.text === undefined) {
     await bot.sendSticker(
       message.chat.id,
-      animulzStickers.at(Math.floor(Math.random() * animulzStickers.length)),
+      animulzStickers[Math.floor(Math.random() * animulzStickers.length)],
     );
     return;
   }
