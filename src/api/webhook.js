@@ -14,7 +14,9 @@ const i18n = require('../localization/i18n');
 
 const router = express.Router();
 
-const bot = new TelegramBot(process.env.TOKEN, { polling: true });
+const bot = new TelegramBot(process.env.TOKEN);
+
+bot.on('polling_error', (e) => console.log('polling_error', e));
 
 const maxTextToSpeechLength = 200;
 const translationActionListen = 'listen';
@@ -38,7 +40,9 @@ botCommands.forEach((command) =>
     try {
       command.handler.bind(bot)(message, match);
     } finally {
-      transaction.finish();
+      if (transaction !== undefined) {
+        transaction.finish();
+      }
     }
   }),
 );
@@ -241,14 +245,18 @@ bot.on('callback_query', async (callback) => {
           },
         });
 
-        transaction.finish();
+        if (transaction !== undefined) {
+          transaction.finish();
+        }
       }
     }
 
     // TODO: add more actions?
   }
 
-  transaction.finish();
+  if (transaction !== undefined) {
+    transaction.finish();
+  }
 });
 
 bot.on('message', async (message) => {
@@ -387,7 +395,9 @@ bot.on('message', async (message) => {
       },
     });
   } finally {
-    transaction.finish();
+    if (transaction !== undefined) {
+      transaction.finish();
+    }
   }
 });
 
