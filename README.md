@@ -90,3 +90,8 @@ https://github.com/wilsonwu/translation-google
 Build a Chatbot from Scratch - Dialogflow on Node.js  
 https://www.youtube.com/watch?v=0NXqwT3Y09E
 
+Redis resources:  
+https://developer.redis.com/develop/node/gettingstarted/
+
+Redislabs alternative:  
+https://scalingo.com

@@ -6,6 +6,7 @@ const redisClient = redis.createClient({
   password: process.env.REDIS_PASSWORD,
 });
 redisClient.on('error', (e) => {
+  console.log(e);
   Sentry.captureException(e);
 });
 redisClient.connect();
