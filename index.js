@@ -7,7 +7,7 @@ if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
   Sentry.init({
     enabled: process.env.SENTRY_ENABLED === 'true',
     environment: process.env.ENVIRONMENT,
-    release: process.env.HEROKU_RELEASE_VERSION || process.env.GIT_TAG,
+    release: process.env.GIT_TAG,
     dsn: `https://${process.env.SENTRY_PUBLIC_KEY}@o1116734.ingest.sentry.io/${process.env.SENTRY_PROJECT_ID}`,
     integrations: [new Sentry.Integrations.Http({ tracing: true })],
     tracesSampleRate: 1.0,
@@ -40,7 +40,11 @@ app.use(express.static(path));
 app.use('/', router);
 app.use('/api/v1', api);
 
-app.listen(process.env.PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Example app listening on port ${process.env.PORT}!`);
-});
+if (process.env.ENVIRONMENT === 'dev') {
+  app.listen(process.env.PORT, () => {
+    // eslint-disable-next-line no-console
+    console.log(`Example app listening on port ${process.env.PORT}!`);
+  });
+}
+
+module.exports = app;

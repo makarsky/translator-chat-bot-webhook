@@ -1,11 +1,14 @@
 {
   "name": "translator-chat-bot-webhook",
   "version": "1.0.0",
-  "description": "Translator chat bot webhook application",
-  "main": "app.js",
+  "description": "Translator chat bot webhook",
+  "main": "index.js",
+  "engines": {
+    "node": "^16.13.2"
+  },
   "scripts": {
-    "start": "node app.js",
-    "dev": "nodemon --exec \"npm run lint && node app.js\"",
+    "start": "node index.js",
+    "dev": "nodemon --exec \"npm run lint && node index.js\"",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint \"./**/*.js\"",
     "lintFix": "eslint --fix './**/*.js'"
