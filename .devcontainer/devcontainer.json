@@ -1,0 +1,16 @@
+{
+    "name": "translator-chat-bot-webhook_docker",
+    "context": "..",
+    "dockerFile": "../Dockerfile",
+    "remoteUser": "node",
+    "mounts": [],
+    "settings": {
+        "terminal.integrated.shell.linux": null
+    },
+    "runArgs": [
+        "--privileged"
+    ],
+    "extensions": [],
+    "workspaceMount": "source=${localWorkspaceFolder}/workspace,target=/home/node/workspace,type=bind,consistency=delegated",
+    "workspaceFolder": "/home/node/workspace"
+}
