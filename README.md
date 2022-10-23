@@ -33,7 +33,7 @@ To retrive release version from heroku, run this and trigger a deploy:
 ```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
 
 ## Run in Docker
-1. docker build -t user/translator-chat-bot-webhook:v1.0.0
+1. docker build -t user/translator-chat-bot-webhook:v1.0.0 .
 1. docker run -d -p 3000:3000 user/translator-chat-bot-webhook:v1.0.0
 1. docker push user/translator-chat-bot-webhook:v1.0.0
 
