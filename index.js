@@ -40,11 +40,7 @@ app.use(express.static(path));
 app.use('/', router);
 app.use('/api/v1', api);
 
-if (process.env.ENVIRONMENT === 'dev') {
-  app.listen(process.env.PORT, () => {
-    // eslint-disable-next-line no-console
-    console.log(`Example app listening on port ${process.env.PORT}!`);
-  });
-}
-
-module.exports = app;
+app.listen(process.env.PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`Example app listening on port ${process.env.PORT}!`);
+});
