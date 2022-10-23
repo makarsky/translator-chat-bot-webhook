@@ -32,6 +32,10 @@ Tech stack:
 To retrive release version from heroku, run this and trigger a deploy:  
 ```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
 
+## Run in Docker
+1. docker build -t translator-chat-bot-webhook
+1. docker run -d -p 3000:3000 translator-chat-bot-webhook
+
 ## Become a contributor by adding a new interface language
 Edit this [localization file](https://github.com/makarsky/translator-chat-bot-webhook/blob/master/src/localization/i18n.js) and submit a pull request to add a new interface language.
 
@@ -62,8 +66,6 @@ https://cloud.google.com/dialogflow/docs/fulfillment-webhook
 [Telegram package examples](https://github.com/yagop/node-telegram-bot-api/blob/master/doc/tutorials.md)
 
 [Another library (not maintained?)](https://github.com/arcturial/telegrambot)
-
-
 
 
 
