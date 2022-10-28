@@ -29,13 +29,20 @@ Tech stack:
 1. create a copy of `.env.example` file, name it `.env` and set actual values (token, ngrok secure url, redis, etc)
 1. npm run dev
 
-To retrive release version from heroku, run this and trigger a deploy:  
-```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
-
 ## Run in Docker
 1. docker build -t user/translator-chat-bot-webhook:v1.0.0 .
 1. docker run -d -p 3000:3000 user/translator-chat-bot-webhook:v1.0.0
 1. docker push user/translator-chat-bot-webhook:v1.0.0
+
+## Hosting options
+1. koyeb.com
+1. ~~heroku.com~~ - no longer free
+1. redislabs.com for redis
+
+To retrive release version from heroku, run this and trigger a deploy:  
+```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
+
+~~cron-job.org~~ - no longer needed
 
 ## Become a contributor by adding a new interface language
 Edit this [localization file](https://github.com/makarsky/translator-chat-bot-webhook/blob/master/src/localization/i18n.js) and submit a pull request to add a new interface language.

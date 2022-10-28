@@ -15,7 +15,7 @@
         "prettier"
     ],
     "rules": {
-        "no-console": "warn",
+        "no-console": "off",
         "no-use-before-define": "off",
         "prettier/prettier": [
             "error",
