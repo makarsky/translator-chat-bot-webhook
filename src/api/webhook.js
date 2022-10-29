@@ -4,6 +4,8 @@ const translate = require('@vitalets/google-translate-api');
 const googleTTS = require('google-tts-api');
 const Sentry = require('@sentry/node');
 const mappedLanguages = require('@vitalets/google-translate-api/languages');
+const https = require('https');
+const fs = require('fs');
 const redisClient = require('./redisClient');
 const availableLanguages = require('./availableLanguages');
 const googleTextToSpeechLanguages = require('./googleTextToSpeechLanguages');
@@ -27,6 +29,41 @@ const animulzStickers = [
 ];
 
 const filterDuplicatesCallback = (v, i, a) => v && i === a.indexOf(v);
+
+const voiceoverDir = 'var/voiceover/';
+
+const downloadAudioFile = async (audioUrl, fileName) => {
+  const file = fs.createWriteStream(`${voiceoverDir}/${fileName}`);
+
+  return new Promise((resolve, reject) => {
+    https
+      .get(audioUrl, (response) => {
+        response.pipe(file);
+
+        file.on('finish', () => {
+          file.close();
+          resolve();
+        });
+      })
+      .on('error', (error) => {
+        reject(error);
+      });
+  });
+};
+
+const removeAudioFile = (fileName) => {
+  fs.unlink(`${voiceoverDir}/${fileName}`, (err) => {
+    if (err && err.code === 'ENOENT') {
+      // file doens't exist
+      console.info("File doesn't exist, won't remove it.");
+    } else if (err) {
+      // other errors, e.g. maybe we don't have enough permission
+      console.error('Error occurred while trying to remove file');
+    } else {
+      console.info(`removed`);
+    }
+  });
+};
 
 botCommands.forEach((command) =>
   bot.onText(command.regExp, (message, match) => {
@@ -203,9 +240,20 @@ bot.on('callback_query', async (callback) => {
           host: 'https://translate.google.com',
         });
 
-        await bot.sendAudio(message.chat.id, audioUrl, {
-          caption: message.text,
-        });
+        await downloadAudioFile(audioUrl, message.text);
+
+        await bot.sendAudio(
+          message.chat.id,
+          fs.createReadStream(`${voiceoverDir}/${message.text}`),
+          {
+            caption: message.text,
+            performer: 't.me/ProTranslatorBot',
+            title: message.text,
+          },
+          { filename: message.text, contentType: 'audio/mpeg' },
+        );
+
+        removeAudioFile(message.text);
 
         googleUa.event(
           message.from.id,
@@ -231,6 +279,7 @@ bot.on('callback_query', async (callback) => {
       } catch (e) {
         console.log(
           'audioUrl error',
+          e,
           message.text,
           audioUrl,
           data.audioLanguageCode,
