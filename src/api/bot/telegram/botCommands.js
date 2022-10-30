@@ -1,9 +1,9 @@
 const mappedLanguages = require('@vitalets/google-translate-api/languages');
-const googleUa = require('../analytics/google-ua');
-const redisClient = require('./redisClient');
+const googleUa = require('../../../analytics/google-ua');
+const redisClient = require('../../redisClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
-const i18n = require('../localization/i18n');
-const availableLanguages = require('./availableLanguages');
+const i18n = require('../../../localization/i18n');
+const availableLanguages = require('../../availableLanguages');
 
 const setTargetLanguageHandler = async function (message) {
   const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
