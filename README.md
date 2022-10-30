@@ -44,6 +44,9 @@ To retrive release version from heroku, run this and trigger a deploy:
 
 ~~cron-job.org~~ - no longer needed
 
+To update packages:  
+npx npm-check -u
+
 ## Become a contributor by adding a new interface language
 Edit this [localization file](https://github.com/makarsky/translator-chat-bot-webhook/blob/master/src/localization/i18n.js) and submit a pull request to add a new interface language.
 
