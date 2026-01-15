@@ -35,9 +35,9 @@ Tech stack:
 1. docker push user/translator-chat-bot-webhook:v1.0.0
 
 ## Hosting options
-1. koyeb.com
+1. ~~koyeb.com~~ - unstable, a project can be deleted without warning
 1. ~~heroku.com~~ - no longer free
-1. redislabs.com for redis
+1. ~~redislabs.com for redis~~ - unstable
 
 To retrive release version from heroku, run this and trigger a deploy:  
 ```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
@@ -46,9 +46,6 @@ To retrive release version from heroku, run this and trigger a deploy:
 
 To update packages:  
 npx npm-check -u
-
-## Become a contributor by adding a new interface language
-Edit this [localization file](https://github.com/makarsky/translator-chat-bot-webhook/blob/master/src/localization/i18n.js) and submit a pull request to add a new interface language.
 
 ## Useful links
 
