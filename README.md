@@ -1,9 +1,5 @@
 # Translator Chat Bot for Telegram 
 
-[How to use / features](https://translator-chat-bot-web-makarsky.koyeb.app/?start=github)
-
-[Try it yourself](https://t.me/ProTranslatorBot?start=github)
-
 <img src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png">
 
 Tech stack:
