@@ -1,20 +1,20 @@
-const mappedLanguages = require('@vitalets/google-translate-api/languages');
+const { languages: mappedLanguages } = require('google-translate-api-x');
 const googleUa = require('../../../analytics/google-ua');
-const redisClient = require('../../redisClient');
+const tursoClient = require('../../tursoClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const i18n = require('../../../localization/i18n');
 const availableLanguages = require('../../availableLanguages');
 
 const setTargetLanguageHandler = async function (message) {
-  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
   // Retrieve source information (github, facebook etc).
   const sourceData = message.text.match(/\/start (\w+)/);
 
   if (chatSettings.source === undefined) {
     chatSettings.source = sourceData ? sourceData[1] : 'organic';
-    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
+    await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
-    googleUa.event(
+    await googleUa.event(
       message.from.id,
       googleUa.categories.translator,
       googleUa.actions.start,
@@ -33,7 +33,7 @@ const setTargetLanguageHandler = async function (message) {
           inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
         );
 
-  this.sendMessage(
+  await this.sendMessage(
     message.chat.id,
     i18n.t('chooseTargetLanguage', message.from.language_code),
     inlineButtonsBuilder.buildLanguageCodeReplyOptions(
@@ -46,7 +46,7 @@ const setTargetLanguageHandler = async function (message) {
   );
 
   if (message.text.match(/\/set_target_language/)) {
-    googleUa.event(
+    await googleUa.event(
       message.from.id,
       googleUa.categories.translator,
       googleUa.actions.setTargetLanguage,
@@ -73,7 +73,7 @@ const botCommands = [
     hidden: false,
     async handler(message) {
       // https://core.telegram.org/bots/api#formatting-options
-      this.sendMessage(
+      await this.sendMessage(
         message.chat.id,
         i18n.t('about', message.from.language_code, [
           'https://github.com/makarsky/translator-chat-bot-webhook',
@@ -81,7 +81,7 @@ const botCommands = [
         { parse_mode: 'MarkdownV2' },
       );
 
-      googleUa.event(
+      await googleUa.event(
         message.from.id,
         googleUa.categories.translator,
         googleUa.actions.about,

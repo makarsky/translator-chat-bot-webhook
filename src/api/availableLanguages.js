@@ -1,4 +1,4 @@
-const languages = require('@vitalets/google-translate-api/languages');
+const { languages } = require('google-translate-api-x');
 
 const availableLanguages = [];
 

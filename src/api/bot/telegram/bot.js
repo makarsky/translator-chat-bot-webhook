@@ -1,23 +1,37 @@
-const TelegramBot = require('node-telegram-bot-api');
-const callbackQueryProcessor = require('./callbackQueryProcessor');
-const messageProcessor = require('./messageProcessor');
-const commandProcessor = require('./commandProcessor');
+const { Api, InputFile } = require('grammy');
+const dispatchUpdate = require('./updateDispatcher');
 
-const bot = new TelegramBot(process.env.TOKEN);
+let telegram;
 
-bot.on('polling_error', (e) => console.log('polling_error', e));
+const getTelegram = () => {
+  if (!process.env.TOKEN) {
+    throw new Error('TOKEN environment variable is required');
+  }
 
-bot.setWebHook(process.env.WEBAPP_URL);
+  if (!telegram) {
+    const api = new Api(process.env.TOKEN);
+    const client = {
+      sendMessage: (...args) => api.sendMessage(...args),
+      sendSticker: (...args) => api.sendSticker(...args),
+      editMessageText: (text, options) => {
+        const { chat_id: chatId, message_id: messageId, ...other } = options;
+        return api.editMessageText(chatId, messageId, text, other);
+      },
+      sendAudio: (chatId, audio, options, fileOptions = {}) =>
+        api.sendAudio(
+          chatId,
+          new InputFile(audio, fileOptions.filename),
+          options,
+        ),
+      setMyCommands: (...args) => api.setMyCommands(...args),
+    };
 
-bot.on('callback_query', (callback) => {
-  callbackQueryProcessor.process(callback, bot);
-});
+    telegram = { api, client };
+  }
 
-bot.on('message', (message) => {
-  messageProcessor.process(message, bot);
-});
+  return telegram;
+};
 
-commandProcessor.process(bot);
-commandProcessor.setCommandMenu(bot);
+const processUpdate = (update) => dispatchUpdate(update, getTelegram().client);
 
-module.exports = bot;
+module.exports = { getTelegram, processUpdate };

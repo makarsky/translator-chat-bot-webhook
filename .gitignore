@@ -2,3 +2,7 @@ node_modules/
 .env
 .env.production
 .env.test
+dist/
+public/assets/
+public/index.html
+public/google7ef08398935a0a68.html

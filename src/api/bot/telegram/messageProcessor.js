@@ -1,6 +1,6 @@
-const translate = require('@vitalets/google-translate-api');
+const { translate } = require('google-translate-api-x');
 const Sentry = require('@sentry/node');
-const redisClient = require('../../redisClient');
+const tursoClient = require('../../tursoClient');
 const availableLanguages = require('../../availableLanguages');
 const googleTextToSpeechLanguages = require('../../googleTextToSpeechLanguages');
 const googleUa = require('../../../analytics/google-ua');
@@ -33,11 +33,6 @@ const process = async (message, bot) => {
 
   Sentry.setUser({ id: message.chat.id });
 
-  const transaction = Sentry.startTransaction({
-    op: 'message',
-    name: 'message',
-  });
-
   const requestTargetLanguage = async (text) => {
     await bot.sendMessage(
       message.chat.id,
@@ -55,97 +50,106 @@ const process = async (message, bot) => {
     );
   };
 
-  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
-  let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
-
+  let lastUsedLanguageCodes = [];
   try {
-    if (lastUsedLanguageCodes.length === 0) {
-      requestTargetLanguage(
-        i18n.t('chooseTargetLanguage', message.from.language_code),
+    await Sentry.startSpan({ op: 'message', name: 'message' }, async () => {
+      const chatSettings = await tursoClient.getChatSettingsById(
+        message.chat.id,
       );
-      return;
-    }
+      lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
-    let targetLanguageCode = lastUsedLanguageCodes[0];
-    let translation = await translate(message.text, { to: targetLanguageCode });
-
-    if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
-      if (lastUsedLanguageCodes.length === 1) {
-        requestTargetLanguage(
-          i18n.t('unsuitableTargetLanguage', message.from.language_code),
+      if (lastUsedLanguageCodes.length === 0) {
+        await requestTargetLanguage(
+          i18n.t('chooseTargetLanguage', message.from.language_code),
         );
         return;
       }
-      // eslint-disable-next-line prefer-destructuring
-      targetLanguageCode = lastUsedLanguageCodes[1];
-      translation = await translate(message.text, { to: targetLanguageCode });
-    }
 
-    lastUsedLanguageCodes.unshift(
-      targetLanguageCode,
-      translation.from.language.iso,
-    );
-    lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
-      filterDuplicatesCallback,
-    );
-    lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
-      0,
-      inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
-    );
-    chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
-    chatSettings.updatedAtTimestamp = Date.now();
-    await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
-
-    const actionButtons = [];
-    const audioLanguageCode =
-      googleTextToSpeechLanguages.findByCode(targetLanguageCode);
-
-    if (translation.text.length < maxTextToSpeechLength && audioLanguageCode) {
-      actionButtons.push({
-        text: i18n.t('listen', message.from.language_code),
-        callback_data: JSON.stringify({
-          translationAction: translationActions.voiceover,
-          audioLanguageCode,
-        }),
+      let targetLanguageCode = lastUsedLanguageCodes[0];
+      let translation = await translate(message.text, {
+        to: targetLanguageCode,
       });
-    }
 
-    if (translation.from.text.didYouMean) {
+      if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
+        if (lastUsedLanguageCodes.length === 1) {
+          await requestTargetLanguage(
+            i18n.t('unsuitableTargetLanguage', message.from.language_code),
+          );
+          return;
+        }
+        targetLanguageCode = lastUsedLanguageCodes[1];
+        translation = await translate(message.text, { to: targetLanguageCode });
+      }
+
+      lastUsedLanguageCodes.unshift(
+        targetLanguageCode,
+        translation.from.language.iso,
+      );
+      lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
+        filterDuplicatesCallback,
+      );
+      lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
+        0,
+        inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
+      );
+      chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
+      chatSettings.updatedAtTimestamp = Date.now();
+      await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
+
+      const actionButtons = [];
+      const audioLanguageCode =
+        googleTextToSpeechLanguages.findByCode(targetLanguageCode);
+
+      if (
+        translation.text.length < maxTextToSpeechLength &&
+        audioLanguageCode
+      ) {
+        actionButtons.push({
+          text: i18n.t('listen', message.from.language_code),
+          callback_data: JSON.stringify({
+            translationAction: translationActions.voiceover,
+            audioLanguageCode,
+          }),
+        });
+      }
+
+      if (translation.from.text.didYouMean) {
+        await bot.sendMessage(
+          message.chat.id,
+          i18n.t('didYouMean', message.from.language_code, [
+            translation.from.text.value,
+          ]),
+        );
+
+        // Force auto-corrected source-text translation.
+        translation = await translate(
+          translation.from.text.value.replace(/[[\]]/g, ''),
+          { to: targetLanguageCode },
+        );
+      }
+
       await bot.sendMessage(
         message.chat.id,
-        i18n.t('didYouMean', message.from.language_code, [
-          translation.from.text.value,
-        ]),
+        translation.text,
+        actionButtons.length > 0
+          ? {
+              reply_markup: {
+                inline_keyboard: [actionButtons],
+              },
+            }
+          : {},
       );
 
-      // Force auto-corrected source-text translation.
-      translation = await translate(
-        translation.from.text.value.replace(/[[\]]/g, ''),
-        { to: targetLanguageCode },
+      await googleUa.event(
+        message.from.id,
+        googleUa.categories.translator,
+        googleUa.actions.translate,
+        targetLanguageCode,
       );
-    }
-
-    await bot.sendMessage(
-      message.chat.id,
-      translation.text,
-      actionButtons.length > 0
-        ? {
-            reply_markup: {
-              inline_keyboard: [actionButtons],
-            },
-          }
-        : {},
-    );
-
-    googleUa.event(
-      message.from.id,
-      googleUa.categories.translator,
-      googleUa.actions.translate,
-      targetLanguageCode,
-    );
-  } catch (e) {
-    console.error('onMessage handler error', e);
-    Sentry.captureException(e, {
+    });
+  } catch (error) {
+    console.error('onMessage handler error', error);
+    Sentry.captureException(error, {
       contexts: {
         onMessageError: {
           chatId: message.chat.id,
@@ -153,10 +157,7 @@ const process = async (message, bot) => {
         },
       },
     });
-  } finally {
-    if (transaction !== undefined) {
-      transaction.finish();
-    }
+    throw error;
   }
 };
 

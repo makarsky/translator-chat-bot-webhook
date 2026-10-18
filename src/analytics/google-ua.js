@@ -14,10 +14,22 @@ const actions = {
 };
 
 const event = (userId, category, action, label, value, params) => {
+  if (!process.env.GOOGLE_UNIVERSAL_ANALYTICS_ID) {
+    return Promise.resolve();
+  }
+
   const visitor = ua(process.env.GOOGLE_UNIVERSAL_ANALYTICS_ID, `${userId}`, {
     strictCidFormat: false,
   });
-  visitor.event(category, action, label, value, params).send();
+
+  return new Promise((resolve) => {
+    visitor.event(category, action, label, value, params).send((error) => {
+      if (error) {
+        console.error('Google Analytics event failed', error);
+      }
+      resolve();
+    });
+  });
 };
 
 module.exports = {

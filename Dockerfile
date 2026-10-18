@@ -1,17 +1,26 @@
-FROM node:16-alpine
+FROM node:24-alpine AS build
 
-RUN mkdir -p /home/node/app/node_modules && chown -R node:node /home/node/app
+WORKDIR /app
 
-WORKDIR /home/node/app
+COPY package*.json ./
+RUN npm ci
 
-COPY --chown=node:node package*.json ./
+COPY . .
+RUN npm run build
+
+FROM node:24-alpine
+
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci --omit=dev && npm cache clean --force
+
+COPY --from=build /app/index.js ./index.js
+COPY --from=build /app/src ./src
+COPY --from=build /app/public ./public
 
 USER node
 
-RUN npm install
-
-COPY --chown=node:node . .
-
 EXPOSE 3000
 
-CMD [ "node", "index.js" ]
+CMD ["npm", "start"]

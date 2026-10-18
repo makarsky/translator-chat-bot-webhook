@@ -1,5 +1,6 @@
 const express = require('express');
-const bodyParser = require('body-parser');
+const fs = require('fs');
+const path = require('path');
 const Sentry = require('@sentry/node');
 require('dotenv').config();
 
@@ -9,38 +10,33 @@ if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
     environment: process.env.ENVIRONMENT,
     release: process.env.GIT_TAG,
     dsn: `https://${process.env.SENTRY_PUBLIC_KEY}@o1116734.ingest.sentry.io/${process.env.SENTRY_PROJECT_ID}`,
-    integrations: [new Sentry.Integrations.Http({ tracing: true })],
+    integrations: [Sentry.httpIntegration()],
     tracesSampleRate: 1.0,
   });
 }
 
 const app = express();
-const router = express.Router();
-
 const api = require('./src/api');
+const publicPath = path.join(__dirname, 'public');
+const sourcePath = path.join(__dirname, 'views');
+const indexPath = fs.existsSync(path.join(publicPath, 'index.html'))
+  ? publicPath
+  : sourcePath;
 
-const path = `${__dirname}/views/`;
-
-router.use((req, res, next) => {
-  next();
-});
-
-router.get('/', (req, res) => {
-  res.sendFile(`${path}index.html`);
-});
-
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  }),
-);
-app.use(bodyParser.json());
-
-app.use(express.static(path));
-app.use('/', router);
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 app.use('/api/v1', api);
-
-app.listen(process.env.PORT, () => {
-  // eslint-disable-next-line no-console
-  console.log(`Example app listening on port ${process.env.PORT}!`);
+app.use(express.static(publicPath));
+app.use(express.static(sourcePath));
+app.get('/', (req, res) => {
+  res.sendFile(path.join(indexPath, 'index.html'));
 });
+
+if (require.main === module) {
+  const port = process.env.PORT || 3000;
+  app.listen(port, () => {
+    console.log(`Example app listening on port ${port}!`);
+  });
+}
+
+module.exports = app;

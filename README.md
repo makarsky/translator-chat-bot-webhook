@@ -1,10 +1,12 @@
-# Translator Chat Bot for Telegram 
+# Translator Chat Bot for Telegram
 
 <img src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png">
 
 Tech stack:
+
 - node.js
 - Express
+- Turso (libSQL)
 - JavaScript
 - Telegram API
 - Unofficial Google Translate API
@@ -13,45 +15,39 @@ Tech stack:
 ## Setup
 
 ### Prerequisites
-- node.js >= 14
+
+- Node.js 24.21.0 (use `.nvmrc`)
 - Create a Telegram bot using @BotFather and copy its token.
-- ngrok
-- a redislabs database with a redisJSON module
+- A Turso database and database auth token.
+- ngrok only if you want to test Telegram webhooks locally.
 
 ### Installation
+
 1. clone the project
-1. npm i
-1. ngrok http http://127.0.0.1:3000 --authtoken=<your_token>
-1. create a copy of `.env.example` file, name it `.env` and set actual values (token, ngrok secure url, redis, etc)
-1. npm run dev
+1. `npm ci`
+1. Copy `.env.example` to `.env` and set the Telegram token, Turso URL/auth token, webhook secret, and webhook URL.
+1. Run `npm run migrate:turso` to apply pending database migrations.
+1. To undo the last migration, run `npm run migrate:turso -- down`. The initial migration's `down` drops `chat_settings` and deletes its data; use it only when that is intentional. Inspect status with `npm run migrate:turso -- pending` or `npm run migrate:turso -- executed`.
+1. Run `npm start` to serve the built site/API locally, or run `npm run build` first to test the production frontend build.
+1. To test the Vite frontend dev server, run `npm run dev:frontend` in another terminal while the Express server is running.
+
+### Test Telegram webhooks locally
+
+1. Create a dedicated test bot with @BotFather and set its token as `TOKEN` in `.env`. Do not use the production bot token; webhook setup changes that bot's registered webhook.
+1. Set `NGROK_AUTH_TOKEN` and `NGROK_DOMAIN` in `.env` using the token and the domain from your ngrok dashboard.
+1. Run `npm run dev:telegram`. This starts the Express watcher and an HTTPS ngrok tunnel to the configured `PORT` (default `3000`); copy the printed URL.
+1. Set `WEBAPP_URL` in `.env` to the printed URL followed by `/api/v1/webhook`, then run `npm run setup:telegram` to register it explicitly with the test bot.
+1. Send a message to the test bot and confirm it reaches the local app.
+
+While the tunnel is active, the local app's other routes are publicly reachable too; the Telegram webhook secret does not make those routes private. `npm run dev:telegram` never registers a webhook.
 
 ## Run in Docker
+
 1. docker build -t user/translator-chat-bot-webhook:v1.0.0 .
-1. docker run -d -p 3000:3000 user/translator-chat-bot-webhook:v1.0.0
+1. docker run -d -p 3000:3000 --env-file .env user/translator-chat-bot-webhook:v1.0.0
 1. docker push user/translator-chat-bot-webhook:v1.0.0
 
-## Hosting options
-1. ~~koyeb.com~~ - unstable, a project can be deleted without warning
-1. ~~heroku.com~~ - no longer free
-1. ~~redislabs.com for redis~~ - unstable
-
-To retrive release version from heroku, run this and trigger a deploy:  
-```heroku labs:enable runtime-dyno-metadata -a translator-chat-bot-webhook```
-
-~~cron-job.org~~ - no longer needed
-
-To update packages:  
-npx npm-check -u
-
 ## Useful links
-
-[Free 50MB Redis storage](https://app.redislabs.com)
-
-[Host and Use Redis for Free](https://dev.to/ramko9999/host-and-use-redis-for-free-51if)
-
-[Redis node.js usage](https://www.youtube.com/watch?v=DOIWQddRD5M)
-
-[Serverless Data for Redis](https://upstash.com/#section-pricing)
 
 [Telegram bot analytics setup example](https://habr.com/ru/post/442610/)  
 [How to add new Google Analytics project](https://support.google.com/analytics/answer/6132368)  
@@ -67,14 +63,9 @@ https://cloud.google.com/dialogflow/docs/fulfillment-webhook
 
 [109 languages in google](https://cloud.google.com/translate/docs/languages)
 
-[Telegram package examples](https://github.com/yagop/node-telegram-bot-api/blob/master/doc/tutorials.md)
+[grammY documentation](https://grammy.dev/)
 
 [Another library (not maintained?)](https://github.com/arcturial/telegrambot)
-
-
-
-
-
 
 [How To Build a Node.js Application with Docker](https://www.digitalocean.com/community/tutorials/how-to-build-a-node-js-application-with-docker-quickstart)
 
@@ -87,17 +78,9 @@ https://levelup.gitconnected.com/six-easy-steps-to-create-a-telegram-bot-from-a-
 Proxy app example:
 https://github.com/CodingGarden/mars-weather-api/blob/master/src/api/mars-weather.js
 
-
-
 Translation package alternatives:  
 https://www.npmjs.com/package/google-translate-open-api  
 https://github.com/wilsonwu/translation-google
 
 Build a Chatbot from Scratch - Dialogflow on Node.js  
 https://www.youtube.com/watch?v=0NXqwT3Y09E
-
-Redis resources:  
-https://developer.redis.com/develop/node/gettingstarted/
-
-Redislabs alternative:  
-https://scalingo.com

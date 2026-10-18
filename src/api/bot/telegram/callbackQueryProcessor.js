@@ -1,17 +1,18 @@
-const mappedLanguages = require('@vitalets/google-translate-api/languages');
+const { languages: mappedLanguages } = require('google-translate-api-x');
+const path = require('path');
 const Sentry = require('@sentry/node');
 const googleTTS = require('google-tts-api');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const googleUa = require('../../../analytics/google-ua');
 const i18n = require('../../../localization/i18n');
 const availableLanguages = require('../../availableLanguages');
-const redisClient = require('../../redisClient');
+const tursoClient = require('../../tursoClient');
 const voiceoverService = require('../../voiceoverService');
 const filterDuplicatesCallback = require('../../../common/helper/filterDuplicatesCallback');
 const translationActions = require('./translationActions');
 
 const processTargetLanguageCodeCallbackQuery = async (bot, data, message) => {
-  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
   let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
   lastUsedLanguageCodes.unshift(data.targetLanguageCode);
   lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
@@ -23,11 +24,11 @@ const processTargetLanguageCodeCallbackQuery = async (bot, data, message) => {
   );
   chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
 
-  await redisClient.setChatSettingsById(message.chat.id, '.', chatSettings);
+  await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
   const targetLanguage = mappedLanguages[data.targetLanguageCode];
 
-  googleUa.event(
+  await googleUa.event(
     message.from.id,
     googleUa.categories.translator,
     googleUa.actions.targetLanguageSelected,
@@ -65,7 +66,7 @@ const processPageCallbackQuery = async (bot, data, message) => {
   let previousPage;
   let nextPage;
 
-  const chatSettings = await redisClient.getChatSettingsById(message.chat.id);
+  const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
   const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
   if (data.page === -1) {
@@ -112,31 +113,32 @@ const processPageCallbackQuery = async (bot, data, message) => {
 
 const processTranslationActionCallbackQuery = async (bot, data, message) => {
   if (data.translationAction === translationActions.voiceover) {
-    let audioUrl = '';
+    let filePath;
 
     try {
-      audioUrl = googleTTS.getAudioUrl(message.text, {
+      const audioUrl = googleTTS.getAudioUrl(message.text, {
         lang: data.audioLanguageCode,
         slow: false,
         host: 'https://translate.google.com',
       });
 
-      await voiceoverService.downloadAudioFile(audioUrl, message.text);
+      filePath = await voiceoverService.downloadAudioFile(
+        audioUrl,
+        message.text,
+      );
 
       await bot.sendAudio(
         message.chat.id,
-        voiceoverService.getVoiceoverStream(message.text),
+        voiceoverService.getVoiceoverStream(filePath),
         {
           caption: message.text,
           performer: 't.me/ProTranslatorBot',
           title: message.text,
         },
-        { filename: message.text, contentType: 'audio/mpeg' },
+        { filename: path.basename(filePath), contentType: 'audio/mpeg' },
       );
 
-      voiceoverService.removeAudioFile(message.text);
-
-      googleUa.event(
+      await googleUa.event(
         message.from.id,
         googleUa.categories.translator,
         googleUa.actions.listen,
@@ -157,16 +159,8 @@ const processTranslationActionCallbackQuery = async (bot, data, message) => {
           },
         });
       }
-    } catch (e) {
-      console.log(
-        'audioUrl error',
-        e,
-        message.text,
-        audioUrl,
-        data.audioLanguageCode,
-      );
-
-      Sentry.captureException(e, {
+    } catch (error) {
+      Sentry.captureException(error, {
         contexts: {
           audioUrlError: {
             chatId: message.chat.id,
@@ -174,6 +168,11 @@ const processTranslationActionCallbackQuery = async (bot, data, message) => {
           },
         },
       });
+      throw error;
+    } finally {
+      if (filePath) {
+        await voiceoverService.removeAudioFile(filePath);
+      }
     }
   }
 
@@ -191,31 +190,27 @@ const process = async (callback, bot) => {
 
   Sentry.setUser({ id: message.chat.id });
 
-  const transaction = Sentry.startTransaction({
-    op: 'callback_query',
-    name: 'callback_query',
-  });
+  await Sentry.startSpan(
+    { op: 'callback_query', name: 'callback_query' },
+    async () => {
+      const data = JSON.parse(callback.data);
 
-  const data = JSON.parse(callback.data);
+      // A new target language is selected.
+      if (data.targetLanguageCode !== undefined) {
+        await processTargetLanguageCodeCallbackQuery(bot, data, message);
+      }
 
-  // A new target language is selected
-  if (data.targetLanguageCode !== undefined) {
-    processTargetLanguageCodeCallbackQuery(bot, data, message);
-  }
+      // A new target language page is selected.
+      if (data.page !== undefined) {
+        await processPageCallbackQuery(bot, data, message);
+      }
 
-  // A new target language page is selected
-  if (data.page !== undefined) {
-    processPageCallbackQuery(bot, data, message);
-  }
-
-  // A translated text action is selected
-  if (data.translationAction !== undefined) {
-    processTranslationActionCallbackQuery(bot, data, message);
-  }
-
-  if (transaction !== undefined) {
-    transaction.finish();
-  }
+      // A translated text action is selected.
+      if (data.translationAction !== undefined) {
+        await processTranslationActionCallbackQuery(bot, data, message);
+      }
+    },
+  );
 };
 
 module.exports = { process };
