@@ -1,5 +1,5 @@
 const { languages: mappedLanguages } = require('google-translate-api-x');
-const googleUa = require('../../../analytics/google-ua');
+const googleAnalytics = require('../../../analytics/google-ga4');
 const tursoClient = require('../../tursoClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const i18n = require('../../../localization/i18n');
@@ -14,10 +14,9 @@ const setTargetLanguageHandler = async function (message) {
     chatSettings.source = sourceData ? sourceData[1] : 'organic';
     await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
-    await googleUa.event(
+    await googleAnalytics.event(
       message.from.id,
-      googleUa.categories.translator,
-      googleUa.actions.start,
+      googleAnalytics.actions.start,
       chatSettings.source,
     );
   }
@@ -46,10 +45,9 @@ const setTargetLanguageHandler = async function (message) {
   );
 
   if (message.text.match(/\/set_target_language/)) {
-    await googleUa.event(
+    await googleAnalytics.event(
       message.from.id,
-      googleUa.categories.translator,
-      googleUa.actions.setTargetLanguage,
+      googleAnalytics.actions.setTargetLanguage,
     );
   }
 };
@@ -81,10 +79,9 @@ const botCommands = [
         { parse_mode: 'MarkdownV2' },
       );
 
-      await googleUa.event(
+      await googleAnalytics.event(
         message.from.id,
-        googleUa.categories.translator,
-        googleUa.actions.about,
+        googleAnalytics.actions.about,
       );
     },
   },

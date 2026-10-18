@@ -3,7 +3,7 @@ const Sentry = require('@sentry/node');
 const tursoClient = require('../../tursoClient');
 const availableLanguages = require('../../availableLanguages');
 const googleTextToSpeechLanguages = require('../../googleTextToSpeechLanguages');
-const googleUa = require('../../../analytics/google-ua');
+const googleAnalytics = require('../../../analytics/google-ga4');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const botCommands = require('./botCommands');
 const i18n = require('../../../localization/i18n');
@@ -140,10 +140,9 @@ const process = async (message, bot) => {
           : {},
       );
 
-      await googleUa.event(
+      await googleAnalytics.event(
         message.from.id,
-        googleUa.categories.translator,
-        googleUa.actions.translate,
+        googleAnalytics.actions.translate,
         targetLanguageCode,
       );
     });

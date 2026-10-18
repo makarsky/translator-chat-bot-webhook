@@ -3,7 +3,7 @@ const path = require('path');
 const Sentry = require('@sentry/node');
 const googleTTS = require('google-tts-api');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
-const googleUa = require('../../../analytics/google-ua');
+const googleAnalytics = require('../../../analytics/google-ga4');
 const i18n = require('../../../localization/i18n');
 const availableLanguages = require('../../availableLanguages');
 const tursoClient = require('../../tursoClient');
@@ -28,10 +28,9 @@ const processTargetLanguageCodeCallbackQuery = async (bot, data, message) => {
 
   const targetLanguage = mappedLanguages[data.targetLanguageCode];
 
-  await googleUa.event(
+  await googleAnalytics.event(
     message.from.id,
-    googleUa.categories.translator,
-    googleUa.actions.targetLanguageSelected,
+    googleAnalytics.actions.targetLanguageSelected,
     data.targetLanguageCode,
   );
 
@@ -138,10 +137,9 @@ const processTranslationActionCallbackQuery = async (bot, data, message) => {
         { filename: path.basename(filePath), contentType: 'audio/mpeg' },
       );
 
-      await googleUa.event(
+      await googleAnalytics.event(
         message.from.id,
-        googleUa.categories.translator,
-        googleUa.actions.listen,
+        googleAnalytics.actions.listen,
       );
 
       try {

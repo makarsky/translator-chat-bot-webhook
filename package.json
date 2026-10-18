@@ -27,8 +27,7 @@
     "express": "^5.3.0",
     "google-translate-api-x": "^10.7.3",
     "google-tts-api": "^2.0.2",
-    "grammy": "^1.46.0",
-    "universal-analytics": "^0.5.4"
+    "grammy": "^1.46.0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

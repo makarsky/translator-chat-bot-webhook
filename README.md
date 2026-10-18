@@ -51,9 +51,9 @@ While the tunnel is active, the local app's other routes are publicly reachable 
 
 [Telegram bot analytics setup example](https://habr.com/ru/post/442610/)  
 [How to add new Google Analytics project](https://support.google.com/analytics/answer/6132368)  
-[Univarsal analytics setup](https://support.google.com/analytics/answer/10269537?hl=en)  
-[Possible alternative 1?](https://getanalytics.io/)  
-[Possible alternative 2?](https://cloud.google.com/appengine/docs/flexible/nodejs/integrating-with-analytics)
+[GA4 Measurement Protocol](https://developers.google.com/analytics/devguides/collection/protocol/ga4)
+
+To enable bot event collection, create a GA4 web data stream and Measurement Protocol API secret, then set `GA4_ENABLED=true`, `GA4_MEASUREMENT_ID`, and `GA4_API_SECRET` in `.env` and the deployment environment. Collection is disabled by default and requires both credentials.
 
 Dialogflow links:  
 https://dialogflow.cloud.google.com/#/getStarted  
