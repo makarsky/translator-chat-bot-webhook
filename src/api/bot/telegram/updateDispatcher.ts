@@ -1,11 +1,32 @@
 const commandProcessor = require('./commandProcessor');
 const messageProcessor = require('./messageProcessor');
 const callbackQueryProcessor = require('./callbackQueryProcessor');
+import type {
+  TelegramBotClient,
+  TelegramCallbackQuery,
+  TelegramMessage,
+  TelegramUpdate,
+} from './types';
+
+interface UpdateProcessors {
+  commandProcessor: {
+    process(bot: TelegramBotClient, message: TelegramMessage): Promise<boolean>;
+  };
+  messageProcessor: {
+    process(message: TelegramMessage, bot: TelegramBotClient): Promise<void>;
+  };
+  callbackQueryProcessor: {
+    process(
+      callback: TelegramCallbackQuery,
+      bot: TelegramBotClient,
+    ): Promise<void>;
+  };
+}
 
 const dispatchUpdate = async (
-  update,
-  bot,
-  processors = {
+  update: TelegramUpdate,
+  bot: TelegramBotClient,
+  processors: UpdateProcessors = {
     commandProcessor,
     messageProcessor,
     callbackQueryProcessor,

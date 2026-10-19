@@ -7,7 +7,8 @@ Tech stack:
 - node.js
 - Express
 - Turso (libSQL)
-- JavaScript
+- TypeScript (server)
+- JavaScript (frontend)
 - Telegram API
 - Unofficial Google Translate API
 - Unofficial Google Text-To-Speech API
@@ -28,7 +29,7 @@ Tech stack:
 1. Copy `.env.example` to `.env` and set the Telegram token, Turso URL/auth token, webhook secret, and webhook URL.
 1. Run `npm run migrate:turso` to apply pending database migrations.
 1. To undo the last migration, run `npm run migrate:turso -- down`. The initial migration's `down` drops `chat_settings` and deletes its data; use it only when that is intentional. Inspect status with `npm run migrate:turso -- pending` or `npm run migrate:turso -- executed`.
-1. Run `npm start` to serve the built site/API locally, or run `npm run build` first to test the production frontend build.
+1. Run `npm run build` to compile the server and build the frontend, then `npm start` to serve them locally. Use `npm run dev` to run the TypeScript server directly during development.
 1. To test the Vite frontend dev server, run `npm run dev:frontend` in another terminal while the Express server is running.
 
 ### Test Telegram webhooks locally
@@ -41,11 +42,9 @@ Tech stack:
 
 While the tunnel is active, the local app's other routes are publicly reachable too; the Telegram webhook secret does not make those routes private. `npm run dev:telegram` never registers a webhook.
 
-## Run in Docker
+## Deploy to Vercel
 
-1. docker build -t user/translator-chat-bot-webhook:v1.0.0 .
-1. docker run -d -p 3000:3000 --env-file .env user/translator-chat-bot-webhook:v1.0.0
-1. docker push user/translator-chat-bot-webhook:v1.0.0
+Connect the repository to Vercel and configure the required environment variables. Vercel serves the frontend from `public/` and runs the Express API from the TypeScript server entry point.
 
 ## Useful links
 
@@ -66,10 +65,6 @@ https://cloud.google.com/dialogflow/docs/fulfillment-webhook
 [grammY documentation](https://grammy.dev/)
 
 [Another library (not maintained?)](https://github.com/arcturial/telegrambot)
-
-[How To Build a Node.js Application with Docker](https://www.digitalocean.com/community/tutorials/how-to-build-a-node-js-application-with-docker-quickstart)
-
-[Express.js + docker](https://nodejs.org/de/docs/guides/nodejs-docker-webapp/)
 
 [Hide API Keys with a Node.js API Proxy + Caching, Rate Limiting and Slow Downs](https://www.youtube.com/watch?v=nCWE6eonL7k)
 

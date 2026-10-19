@@ -3,7 +3,7 @@ const defaultLanguageCode = 'en';
 const localizations = {
   about: {
     be: '[Рэпазітар]($1)\n\n[Прапановы / Паведаміць аб памылцы]($1/issues/new)\n\nЗрабіў з 🛠️ Ігар Макарскі',
-    en: '[Repository]($1)\n\n[Suggestions / Bug Report]($1/issues/new)\n\nMade with 🛠️ by Igor Makarsky',
+    en: '[Repository]($1)\n\n[Suggestions / Bug Report]($1/issues/new)\n\nMade with 🛠️ by Ihar Makarski',
     ru: '[Репозиторий]($1)\n\n[Предложения / Отчёты об ошибках]($1/issues/new)\n\nАвтор: Игорь Макарский',
     uk: '[Репозиторій]($1)\n\n[Пропозиції / Повідомити про помилку]($1/issues/new)\n\nЗроблено з 🛠️ Ігорем Макарським',
   },
@@ -51,13 +51,16 @@ const localizations = {
   },
 };
 
-const t = (key, languageCode, replacements = []) => {
+const t = (
+  key: keyof typeof localizations,
+  languageCode?: string,
+  replacements: string[] = [],
+): string => {
   const newLanguageCode = languageCode || defaultLanguageCode;
+  const translations = localizations[key] as Record<string, string>;
 
   const text =
-    localizations[key] && localizations[key][newLanguageCode]
-      ? localizations[key][newLanguageCode]
-      : localizations[key][defaultLanguageCode];
+    translations[newLanguageCode] || translations[defaultLanguageCode];
 
   if (replacements.length === 0) {
     return text;

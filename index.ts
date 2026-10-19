@@ -1,8 +1,10 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const Sentry = require('@sentry/node');
-require('dotenv').config();
+import express from 'express';
+import fs from 'node:fs';
+import path from 'node:path';
+import * as Sentry from '@sentry/node';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
   Sentry.init({
@@ -17,8 +19,8 @@ if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
 
 const app = express();
 const api = require('./src/api');
-const publicPath = path.join(__dirname, 'public');
-const sourcePath = path.join(__dirname, 'views');
+const publicPath = path.join(process.cwd(), 'public');
+const sourcePath = path.join(process.cwd(), 'views');
 const indexPath = fs.existsSync(path.join(publicPath, 'index.html'))
   ? publicPath
   : sourcePath;
@@ -28,7 +30,7 @@ app.use(express.json());
 app.use('/api/v1', api);
 app.use(express.static(publicPath));
 app.use(express.static(sourcePath));
-app.get('/', (req, res) => {
+app.get('/', (_req, res) => {
   res.sendFile(path.join(indexPath, 'index.html'));
 });
 

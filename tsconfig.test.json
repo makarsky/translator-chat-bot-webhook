@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noImplicitAny": false
+  },
+  "include": ["test/**/*.ts"],
+  "exclude": ["node_modules", "dist", "public", "views", "migrations"]
+}

@@ -4,8 +4,16 @@ const tursoClient = require('../../tursoClient');
 const inlineButtonsBuilder = require('./inlineButtonsBuilder');
 const i18n = require('../../../localization/i18n');
 const availableLanguages = require('../../availableLanguages');
+import type {
+  TelegramBotClient,
+  TelegramCommand,
+  TelegramCommandMessage,
+} from './types';
 
-const setTargetLanguageHandler = async function (message) {
+const setTargetLanguageHandler = async function (
+  this: TelegramBotClient,
+  message: TelegramCommandMessage,
+) {
   const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
   // Retrieve source information (github, facebook etc).
   const sourceData = message.text.match(/\/start (\w+)/);
@@ -26,7 +34,7 @@ const setTargetLanguageHandler = async function (message) {
     lastUsedLanguageCodes.length > 0
       ? lastUsedLanguageCodes
           .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-          .map((code) => ({ code, language: mappedLanguages[code] }))
+          .map((code: string) => ({ code, language: mappedLanguages[code] }))
       : availableLanguages.slice(
           0,
           inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
@@ -52,7 +60,7 @@ const setTargetLanguageHandler = async function (message) {
   }
 };
 
-const botCommands = [
+const botCommands: TelegramCommand[] = [
   {
     regExp: /\/start/,
     description: 'commandDescriptionSetTargetLanguage',
@@ -69,7 +77,7 @@ const botCommands = [
     regExp: /\/about/,
     description: 'commandDescriptionAbout',
     hidden: false,
-    async handler(message) {
+    async handler(this: TelegramBotClient, message: TelegramCommandMessage) {
       // https://core.telegram.org/bots/api#formatting-options
       await this.sendMessage(
         message.chat.id,

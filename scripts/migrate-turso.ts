@@ -20,7 +20,7 @@ const runMigrations = async (command = 'up') => {
     url: process.env.TURSO_DATABASE_URL,
     authToken: process.env.TURSO_AUTH_TOKEN,
   });
-  const migrationsDirectory = path.resolve(__dirname, '../migrations');
+  const migrationsDirectory = path.resolve(process.cwd(), 'migrations');
   const storage = createTursoMigrationStorage(client, migrationsDirectory);
 
   try {

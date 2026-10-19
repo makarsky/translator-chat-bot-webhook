@@ -11,7 +11,7 @@ test('audio filenames sanitize path characters and reserved names', () => {
     os.tmpdir(),
     'unique',
   );
-  const fileName = path.basename(filePath);
+  const fileName: string = path.basename(filePath);
 
   assert.equal(path.dirname(filePath), os.tmpdir());
   assert.doesNotMatch(fileName, /[<>:"/\\|?*]/);

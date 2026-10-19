@@ -1,8 +1,16 @@
-const path = require('path');
+import path from 'node:path';
+import type { Client } from '@libsql/client' with {
+  'resolution-mode': 'import',
+};
 
 const migrationTable = 'umzug_migrations';
 
-const createTursoMigrationStorage = (database, migrationsDirectory) => ({
+type Database = Pick<Client, 'execute'>;
+
+const createTursoMigrationStorage = (
+  database: Database,
+  migrationsDirectory: string,
+) => ({
   async ensureTable() {
     await database.execute(`
       CREATE TABLE IF NOT EXISTS ${migrationTable} (
@@ -12,14 +20,14 @@ const createTursoMigrationStorage = (database, migrationsDirectory) => ({
     `);
   },
 
-  async logMigration(migrationPath) {
+  async logMigration(migrationPath: string) {
     await database.execute({
       sql: `INSERT INTO ${migrationTable} (name) VALUES (?)`,
       args: [path.basename(migrationPath)],
     });
   },
 
-  async unlogMigration(migrationPath) {
+  async unlogMigration(migrationPath: string) {
     await database.execute({
       sql: `DELETE FROM ${migrationTable} WHERE name = ?`,
       args: [path.basename(migrationPath)],

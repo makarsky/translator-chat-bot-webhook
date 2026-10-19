@@ -7,7 +7,7 @@ const eventNames = {
   about: 'translator_about',
 };
 
-const labelParameters = {
+const labelParameters: Partial<Record<AnalyticsAction, string>> = {
   start: 'start_source',
   targetLanguageSelected: 'target_language',
   translate: 'target_language',
@@ -24,7 +24,13 @@ const actions = {
 
 const requestTimeoutMs = 1500;
 
-const event = async (userId, action, label) => {
+type AnalyticsAction = keyof typeof actions;
+
+const event = async (
+  userId: number | string,
+  action: AnalyticsAction,
+  label?: string,
+): Promise<void> => {
   const enabled = process.env.GA4_ENABLED === 'true';
   const measurementId = process.env.GA4_MEASUREMENT_ID;
   const apiSecret = process.env.GA4_API_SECRET;
@@ -34,7 +40,7 @@ const event = async (userId, action, label) => {
     return;
   }
 
-  const parameters = {};
+  const parameters: Record<string, string> = {};
   const labelParameter = labelParameters[action];
   if (labelParameter && label !== undefined) {
     parameters[labelParameter] = label;

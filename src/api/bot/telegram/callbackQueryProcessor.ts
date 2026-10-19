@@ -10,8 +10,18 @@ const tursoClient = require('../../tursoClient');
 const voiceoverService = require('../../voiceoverService');
 const filterDuplicatesCallback = require('../../../common/helper/filterDuplicatesCallback');
 const translationActions = require('./translationActions');
+import type {
+  TelegramBotClient,
+  TelegramCallbackData,
+  TelegramCallbackMessage,
+  TelegramCallbackQuery,
+} from './types';
 
-const processTargetLanguageCodeCallbackQuery = async (bot, data, message) => {
+const processTargetLanguageCodeCallbackQuery = async (
+  bot: TelegramBotClient,
+  data: TelegramCallbackData & { targetLanguageCode: string },
+  message: TelegramCallbackMessage,
+) => {
   const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
   let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
   lastUsedLanguageCodes.unshift(data.targetLanguageCode);
@@ -57,7 +67,11 @@ const processTargetLanguageCodeCallbackQuery = async (bot, data, message) => {
   }
 };
 
-const processPageCallbackQuery = async (bot, data, message) => {
+const processPageCallbackQuery = async (
+  bot: TelegramBotClient,
+  data: TelegramCallbackData & { page: number },
+  message: TelegramCallbackMessage,
+) => {
   const itemsPerPage = inlineButtonsBuilder.maxNumberOfInlineButtons - 2;
   const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
   const offset = data.page * itemsPerPage;
@@ -71,7 +85,7 @@ const processPageCallbackQuery = async (bot, data, message) => {
   if (data.page === -1) {
     languages = lastUsedLanguageCodes
       .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-      .map((code) => ({ code, language: mappedLanguages[code] }));
+      .map((code: string) => ({ code, language: mappedLanguages[code] }));
     nextPage = 0;
   } else if (data.page === 0) {
     nextPage = data.page + 1;
@@ -110,13 +124,20 @@ const processPageCallbackQuery = async (bot, data, message) => {
   }
 };
 
-const processTranslationActionCallbackQuery = async (bot, data, message) => {
+const processTranslationActionCallbackQuery = async (
+  bot: TelegramBotClient,
+  data: TelegramCallbackData & {
+    translationAction: string;
+    audioLanguageCode?: string;
+  },
+  message: TelegramCallbackMessage,
+) => {
   if (data.translationAction === translationActions.voiceover) {
     let filePath;
 
     try {
       const audioUrl = googleTTS.getAudioUrl(message.text, {
-        lang: data.audioLanguageCode,
+        lang: data.audioLanguageCode as string,
         slow: false,
         host: 'https://translate.google.com',
       });
@@ -177,7 +198,10 @@ const processTranslationActionCallbackQuery = async (bot, data, message) => {
   // TODO: add more actions (slow voiceover, picture)?
 };
 
-const process = async (callback, bot) => {
+const process = async (
+  callback: TelegramCallbackQuery,
+  bot: TelegramBotClient,
+) => {
   if (!callback.data || !callback.message) {
     return;
   }
@@ -191,21 +215,39 @@ const process = async (callback, bot) => {
   await Sentry.startSpan(
     { op: 'callback_query', name: 'callback_query' },
     async () => {
-      const data = JSON.parse(callback.data);
+      const data = JSON.parse(callback.data!) as TelegramCallbackData;
 
       // A new target language is selected.
       if (data.targetLanguageCode !== undefined) {
-        await processTargetLanguageCodeCallbackQuery(bot, data, message);
+        await processTargetLanguageCodeCallbackQuery(
+          bot,
+          {
+            ...data,
+            targetLanguageCode: data.targetLanguageCode,
+          },
+          message,
+        );
       }
 
       // A new target language page is selected.
       if (data.page !== undefined) {
-        await processPageCallbackQuery(bot, data, message);
+        await processPageCallbackQuery(
+          bot,
+          { ...data, page: data.page },
+          message,
+        );
       }
 
       // A translated text action is selected.
       if (data.translationAction !== undefined) {
-        await processTranslationActionCallbackQuery(bot, data, message);
+        await processTranslationActionCallbackQuery(
+          bot,
+          {
+            ...data,
+            translationAction: data.translationAction,
+          },
+          message,
+        );
       }
     },
   );

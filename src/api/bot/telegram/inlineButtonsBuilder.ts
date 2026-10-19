@@ -1,11 +1,12 @@
 const maxNumberOfInlineButtons = 8;
+import type { TelegramLanguageOption } from './types';
 
 const buildLanguageCodeReplyOptions = (
-  languages,
-  callbackParameter,
-  userLocale,
-  previosPage = undefined,
-  nextPage = undefined,
+  languages: TelegramLanguageOption[],
+  callbackParameter: string,
+  userLocale: string | undefined,
+  previosPage?: number,
+  nextPage?: number,
 ) => {
   const buttons = languages.map((language) => ({
     text: language.language,

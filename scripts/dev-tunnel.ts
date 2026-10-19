@@ -10,10 +10,10 @@ if (!authToken) {
   console.error('NGROK_AUTH_TOKEN must be set in .env');
   process.exitCode = 1;
 } else {
-  let listener;
-  let shutdownPromise;
+  let listener: { close(): Promise<void>; url(): string } | undefined;
+  let shutdownPromise: Promise<void> | undefined;
 
-  const shutdown = (signal) => {
+  const shutdown = (signal: 'SIGINT' | 'SIGTERM') => {
     if (shutdownPromise) return shutdownPromise;
 
     shutdownPromise = (async () => {
@@ -40,7 +40,7 @@ if (!authToken) {
       authtoken: authToken,
       domain: domain,
     })
-    .then((openedListener) => {
+    .then((openedListener: { close(): Promise<void>; url(): string }) => {
       listener = openedListener;
 
       if (shutdownPromise) {
@@ -50,7 +50,7 @@ if (!authToken) {
       console.log(`ngrok HTTPS URL: ${listener.url()}`);
       process.stdin.resume();
     })
-    .catch((error) => {
+    .catch((error: unknown) => {
       console.error('Failed to start ngrok tunnel', error);
       process.exitCode = 1;
     });

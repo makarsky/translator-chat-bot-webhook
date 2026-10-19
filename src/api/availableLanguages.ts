@@ -1,6 +1,11 @@
 const { languages } = require('google-translate-api-x');
 
-const availableLanguages = [];
+interface LanguageOption {
+  code: string;
+  language: string;
+}
+
+const availableLanguages: LanguageOption[] = [];
 
 Object.keys(languages).forEach((key) => {
   if (key !== 'auto' && key !== 'isSupported' && key !== 'getCode') {

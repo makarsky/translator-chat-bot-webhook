@@ -1,13 +1,24 @@
 const Sentry = require('@sentry/node');
 const botCommands = require('./botCommands');
 const i18n = require('../../../localization/i18n');
+import type {
+  TelegramBotClient,
+  TelegramCommand,
+  TelegramCommandMessage,
+  TelegramMessage,
+} from './types';
 
-const process = async (bot, message) => {
+const typedBotCommands: TelegramCommand[] = botCommands;
+
+const process = async (bot: TelegramBotClient, message: TelegramMessage) => {
   if (typeof message.text !== 'string') {
     return false;
   }
 
-  const command = botCommands.find((item) => item.regExp.test(message.text));
+  const messageText = message.text;
+  const command = typedBotCommands.find((item) =>
+    item.regExp.test(messageText),
+  );
 
   if (!command) {
     return false;
@@ -17,17 +28,17 @@ const process = async (bot, message) => {
 
   const commandName = command.regExp.toString().replace(/\W+/g, '');
   await Sentry.startSpan({ op: commandName, name: commandName }, async () =>
-    command.handler.call(bot, message, message.text.match(command.regExp)),
+    command.handler.call(bot, message as TelegramCommandMessage),
   );
 
   return true;
 };
 
-const setCommandMenu = async (bot) =>
+const setCommandMenu = async (bot: TelegramBotClient) =>
   Promise.all(
     Object.keys(i18n.about).map((languageCode) =>
       bot.setMyCommands(
-        botCommands
+        typedBotCommands
           .filter((command) => !command.hidden)
           .map((command) => ({
             command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string

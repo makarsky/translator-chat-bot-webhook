@@ -9,6 +9,11 @@ const originalFetch = global.fetch;
 const originalConsoleError = console.error;
 const originalAbortSignalTimeout = AbortSignal.timeout;
 let timeoutMs;
+const mockFetch = (
+  implementation: (...args: Parameters<typeof fetch>) => Promise<unknown>,
+) => {
+  global.fetch = implementation as typeof fetch;
+};
 
 test.afterEach(() => {
   if (originalMeasurementId === undefined) {
@@ -40,9 +45,9 @@ test('does not send events when disabled or GA4 credentials are incomplete', asy
   process.env.GA4_MEASUREMENT_ID = 'G-TEST';
   process.env.GA4_API_SECRET = 'secret';
   let requestCount = 0;
-  global.fetch = async () => {
+  mockFetch(async () => {
     requestCount += 1;
-  };
+  });
 
   await googleAnalytics.event(123, googleAnalytics.actions.start, 'organic');
 
@@ -61,15 +66,24 @@ test('sends mapped GA4 event names, labels, and string client IDs', async () => 
   process.env.GA4_ENABLED = 'true';
   process.env.GA4_MEASUREMENT_ID = 'G-TEST';
   process.env.GA4_API_SECRET = 'test secret';
-  const requests = [];
+  const requests: Array<{
+    url: string;
+    init: RequestInit & { headers: Record<string, string>; body: string };
+  }> = [];
   AbortSignal.timeout = (milliseconds) => {
     timeoutMs = milliseconds;
     return originalAbortSignalTimeout(milliseconds);
   };
-  global.fetch = async (...args) => {
-    requests.push(args);
+  mockFetch(async (input, init) => {
+    requests.push({
+      url: String(input),
+      init: init as RequestInit & {
+        headers: Record<string, string>;
+        body: string;
+      },
+    });
     return { ok: true };
-  };
+  });
 
   await googleAnalytics.event(123, googleAnalytics.actions.start, 'organic');
   await googleAnalytics.event(
@@ -82,17 +96,17 @@ test('sends mapped GA4 event names, labels, and string client IDs', async () => 
   await googleAnalytics.event(987, googleAnalytics.actions.listen);
   await googleAnalytics.event(321, googleAnalytics.actions.about);
 
-  assert.match(requests[0][0], /measurement_id=G-TEST/);
-  assert.match(requests[0][0], /api_secret=test%20secret/);
-  assert.equal(requests[0][1].method, 'POST');
-  assert.equal(requests[0][1].headers['Content-Type'], 'application/json');
+  assert.match(requests[0].url, /measurement_id=G-TEST/);
+  assert.match(requests[0].url, /api_secret=test%20secret/);
+  assert.equal(requests[0].init.method, 'POST');
+  assert.equal(requests[0].init.headers['Content-Type'], 'application/json');
   assert.equal(timeoutMs, 1500);
-  assert.ok(requests[0][1].signal instanceof AbortSignal);
-  assert.deepEqual(JSON.parse(requests[0][1].body), {
+  assert.ok(requests[0].init.signal instanceof AbortSignal);
+  assert.deepEqual(JSON.parse(requests[0].init.body), {
     client_id: '123',
     events: [{ name: 'translator_start', params: { start_source: 'organic' } }],
   });
-  assert.deepEqual(JSON.parse(requests[1][1].body), {
+  assert.deepEqual(JSON.parse(requests[1].init.body), {
     client_id: '456',
     events: [
       {
@@ -101,21 +115,21 @@ test('sends mapped GA4 event names, labels, and string client IDs', async () => 
       },
     ],
   });
-  assert.deepEqual(JSON.parse(requests[2][1].body), {
+  assert.deepEqual(JSON.parse(requests[2].init.body), {
     client_id: '789',
     events: [
       { name: 'translator_translate', params: { target_language: 'de' } },
     ],
   });
-  assert.deepEqual(JSON.parse(requests[3][1].body), {
+  assert.deepEqual(JSON.parse(requests[3].init.body), {
     client_id: '654',
     events: [{ name: 'translator_set_target_language', params: {} }],
   });
-  assert.deepEqual(JSON.parse(requests[4][1].body), {
+  assert.deepEqual(JSON.parse(requests[4].init.body), {
     client_id: '987',
     events: [{ name: 'translator_listen', params: {} }],
   });
-  assert.deepEqual(JSON.parse(requests[5][1].body), {
+  assert.deepEqual(JSON.parse(requests[5].init.body), {
     client_id: '321',
     events: [{ name: 'translator_about', params: {} }],
   });
@@ -125,17 +139,17 @@ test('logs HTTP and network failures without rejecting', async () => {
   process.env.GA4_ENABLED = 'true';
   process.env.GA4_MEASUREMENT_ID = 'G-TEST';
   process.env.GA4_API_SECRET = 'secret';
-  const errors = [];
+  const errors: unknown[][] = [];
   console.error = (...args) => errors.push(args);
-  global.fetch = async () => ({ ok: false, status: 400 });
+  mockFetch(async () => ({ ok: false, status: 400 }));
 
   await assert.doesNotReject(
     googleAnalytics.event(123, googleAnalytics.actions.listen),
   );
 
-  global.fetch = async () => {
+  mockFetch(async () => {
     throw new Error('network unavailable');
-  };
+  });
   await assert.doesNotReject(
     googleAnalytics.event(123, googleAnalytics.actions.listen),
   );

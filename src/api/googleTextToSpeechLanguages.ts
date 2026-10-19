@@ -139,7 +139,7 @@ const languageCodes = [
   // 'zu-ZA', // 400 HTTP error from google
 ];
 
-const findByCode = (code) => {
+const findByCode = (code: string): string | null => {
   for (const languageCode of languageCodes) {
     if (code === 'zh-CN') {
       return 'zh';

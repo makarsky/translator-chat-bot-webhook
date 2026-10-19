@@ -9,6 +9,7 @@ const botCommands = require('./botCommands');
 const i18n = require('../../../localization/i18n');
 const filterDuplicatesCallback = require('../../../common/helper/filterDuplicatesCallback');
 const translationActions = require('./translationActions');
+import type { TelegramBotClient, TelegramMessage } from './types';
 
 const maxTextToSpeechLength = 200;
 
@@ -18,8 +19,9 @@ const animulzStickers = [
   'CAACAgEAAxkBAAIGzGHoLyw5Kzy9XxND2_mWGwGBpP-KAAI7FAACmX-IArz-u6pndvuMIwQ',
 ];
 
-const process = async (message, bot) => {
-  if (message.text === undefined) {
+const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
+  const messageText = message.text;
+  if (messageText === undefined) {
     await bot.sendSticker(
       message.chat.id,
       animulzStickers[Math.floor(Math.random() * animulzStickers.length)],
@@ -27,13 +29,17 @@ const process = async (message, bot) => {
     return;
   }
 
-  if (botCommands.some((command) => message.text.match(command.regExp))) {
+  if (
+    botCommands.some((command: { regExp: RegExp }) =>
+      messageText.match(command.regExp),
+    )
+  ) {
     return;
   }
 
   Sentry.setUser({ id: message.chat.id });
 
-  const requestTargetLanguage = async (text) => {
+  const requestTargetLanguage = async (text: string) => {
     await bot.sendMessage(
       message.chat.id,
       text,
@@ -50,7 +56,7 @@ const process = async (message, bot) => {
     );
   };
 
-  let lastUsedLanguageCodes = [];
+  let lastUsedLanguageCodes: string[] = [];
   try {
     await Sentry.startSpan({ op: 'message', name: 'message' }, async () => {
       const chatSettings = await tursoClient.getChatSettingsById(
@@ -66,7 +72,7 @@ const process = async (message, bot) => {
       }
 
       let targetLanguageCode = lastUsedLanguageCodes[0];
-      let translation = await translate(message.text, {
+      let translation = await translate(messageText, {
         to: targetLanguageCode,
       });
 
@@ -78,7 +84,7 @@ const process = async (message, bot) => {
           return;
         }
         targetLanguageCode = lastUsedLanguageCodes[1];
-        translation = await translate(message.text, { to: targetLanguageCode });
+        translation = await translate(messageText, { to: targetLanguageCode });
       }
 
       lastUsedLanguageCodes.unshift(

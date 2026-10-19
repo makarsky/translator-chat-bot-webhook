@@ -1,17 +1,22 @@
-const express = require('express');
-const crypto = require('crypto');
-const Sentry = require('@sentry/node');
-const telegramBot = require('./bot/telegram/bot');
+import express, { type Request, type Response } from 'express';
+import * as crypto from 'node:crypto';
+import * as Sentry from '@sentry/node';
 
+const telegramBot = require('./bot/telegram/bot');
 const router = express.Router();
 
-router.get('/', (req, res) => {
+interface TelegramUpdate {
+  update_id: number;
+  [key: string]: unknown;
+}
+
+router.get('/', (_req: Request, res: Response) => {
   res.json({
     message: 'API - 👋🌎🌍🌏',
   });
 });
 
-router.post('/webhook', async (req, res) => {
+router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
   const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
   const receivedSecret = req.get('x-telegram-bot-api-secret-token') || '';
 
@@ -30,18 +35,19 @@ router.post('/webhook', async (req, res) => {
     return;
   }
 
+  const update = req.body as Partial<TelegramUpdate> | null;
   if (
-    !req.body ||
-    typeof req.body !== 'object' ||
-    Array.isArray(req.body) ||
-    !Number.isSafeInteger(req.body.update_id)
+    !update ||
+    typeof update !== 'object' ||
+    Array.isArray(update) ||
+    !Number.isSafeInteger(update.update_id)
   ) {
     res.status(400).json({ error: 'Invalid Telegram update' });
     return;
   }
 
   try {
-    await telegramBot.processUpdate(req.body);
+    await telegramBot.processUpdate(update);
     res.sendStatus(200);
   } catch (error) {
     console.error('Telegram webhook update failed', error);

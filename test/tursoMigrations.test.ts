@@ -9,7 +9,7 @@ const {
 
 test('Umzug applies and reverts chat settings schema in Turso/libSQL', async () => {
   const database = createClient({ url: 'file::memory:' });
-  const migrationsDirectory = path.resolve(__dirname, '../migrations');
+  const migrationsDirectory = path.resolve(process.cwd(), 'migrations');
   const storage = createTursoMigrationStorage(database, migrationsDirectory);
 
   try {

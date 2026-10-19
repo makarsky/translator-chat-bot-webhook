@@ -1,15 +1,15 @@
-const crypto = require('crypto');
-const fs = require('fs');
-const os = require('os');
-const path = require('path');
-const https = require('https');
-const { pipeline } = require('stream');
+import * as crypto from 'node:crypto';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import https from 'node:https';
+import { pipeline } from 'node:stream';
 
 const maxFileNameBytes = 240;
 const extension = '.mp3';
 
 const getAudioFilePath = (
-  messageText,
+  messageText: string,
   directory = os.tmpdir(),
   uniqueSuffix = crypto.randomUUID(),
 ) => {
@@ -40,17 +40,19 @@ const getAudioFilePath = (
   return path.join(directory, fileName);
 };
 
-const downloadAudioFile = async (audioUrl, messageText) => {
+const downloadAudioFile = async (
+  audioUrl: string,
+  messageText: string,
+): Promise<string> => {
   const filePath = getAudioFilePath(messageText);
 
   try {
-    await new Promise((resolve, reject) => {
+    await new Promise<void>((resolve, reject) => {
       const request = https.get(audioUrl, (response) => {
-        if (response.statusCode < 200 || response.statusCode >= 300) {
+        const statusCode = response.statusCode as number;
+        if (statusCode < 200 || statusCode >= 300) {
           response.resume();
-          reject(
-            new Error(`Audio download failed: HTTP ${response.statusCode}`),
-          );
+          reject(new Error(`Audio download failed: HTTP ${statusCode}`));
           return;
         }
 
@@ -73,17 +75,17 @@ const downloadAudioFile = async (audioUrl, messageText) => {
   }
 };
 
-const removeAudioFile = async (filePath) => {
+const removeAudioFile = async (filePath: string): Promise<void> => {
   try {
     await fs.promises.unlink(filePath);
   } catch (error) {
-    if (error.code !== 'ENOENT') {
+    if ((error as NodeJS.ErrnoException).code !== 'ENOENT') {
       throw error;
     }
   }
 };
 
-const getVoiceoverStream = (filePath) => fs.createReadStream(filePath);
+const getVoiceoverStream = (filePath: string) => fs.createReadStream(filePath);
 
 module.exports = {
   downloadAudioFile,
