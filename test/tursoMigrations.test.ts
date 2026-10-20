@@ -1,11 +1,10 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const path = require('path');
-const { createClient } = require('@libsql/client');
-const Umzug = require('umzug');
-const {
-  createTursoMigrationStorage,
-} = require('../src/api/tursoMigrationStorage');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createClient } from '@libsql/client';
+import Umzug from 'umzug';
+import { createTursoMigrationStorage } from '../src/api/tursoMigrationStorage.js';
 
 test('Umzug applies and reverts chat settings schema in Turso/libSQL', async () => {
   const database = createClient({ url: 'file::memory:' });
@@ -20,6 +19,8 @@ test('Umzug applies and reverts chat settings schema in Turso/libSQL', async () 
         path: migrationsDirectory,
         pattern: /^\d+[\w-]+\.js$/,
         params: [database],
+        customResolver: async (migrationPath) =>
+          import(pathToFileURL(migrationPath).href),
       },
       storage,
       logging: false,

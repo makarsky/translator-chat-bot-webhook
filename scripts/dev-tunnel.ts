@@ -1,6 +1,5 @@
-require('dotenv').config();
-
-const ngrok = require('@ngrok/ngrok');
+import 'dotenv/config';
+import ngrok from '@ngrok/ngrok';
 
 const authToken = process.env.NGROK_AUTH_TOKEN;
 const domain = process.env.NGROK_DOMAIN;
@@ -10,7 +9,7 @@ if (!authToken) {
   console.error('NGROK_AUTH_TOKEN must be set in .env');
   process.exitCode = 1;
 } else {
-  let listener: { close(): Promise<void>; url(): string } | undefined;
+  let listener: { close(): Promise<void>; url(): string | null } | undefined;
   let shutdownPromise: Promise<void> | undefined;
 
   const shutdown = (signal: 'SIGINT' | 'SIGTERM') => {
@@ -40,7 +39,7 @@ if (!authToken) {
       authtoken: authToken,
       domain: domain,
     })
-    .then((openedListener: { close(): Promise<void>; url(): string }) => {
+    .then((openedListener) => {
       listener = openedListener;
 
       if (shutdownPromise) {

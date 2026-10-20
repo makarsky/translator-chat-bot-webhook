@@ -11,4 +11,4 @@ const down = async (database) => {
   await database.execute('DROP TABLE IF EXISTS chat_settings');
 };
 
-module.exports = { up, down };
+export { up, down };

@@ -1,7 +1,6 @@
-require('dotenv').config();
-
-const commandProcessor = require('../src/api/bot/telegram/commandProcessor');
-const { getTelegram } = require('../src/api/bot/telegram/bot');
+import 'dotenv/config';
+import commandProcessor from '../src/api/bot/telegram/commandProcessor.js';
+import telegramBot from '../src/api/bot/telegram/bot.js';
 
 const setupTelegram = async () => {
   const webhookUrl = process.env.WEBAPP_URL;
@@ -17,7 +16,7 @@ const setupTelegram = async () => {
     );
   }
 
-  const { api, client } = getTelegram();
+  const { api, client } = telegramBot.getTelegram();
   await api.setWebhook(webhookUrl, {
     secret_token: secret,
     allowed_updates: ['message', 'callback_query'],

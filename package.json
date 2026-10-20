@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Translator chat bot webhook",
   "main": "dist/index.js",
+  "type": "module",
   "engines": {
     "node": "24.x"
   },

@@ -1,9 +1,9 @@
-const eslint = require('@eslint/js');
-const globals = require('globals');
-const prettierPlugin = require('eslint-plugin-prettier');
-const tseslint = require('typescript-eslint');
+import eslint from '@eslint/js';
+import globals from 'globals';
+import prettierPlugin from 'eslint-plugin-prettier';
+import tseslint from 'typescript-eslint';
 
-module.exports = [
+export default [
   {
     ignores: ['dist/**', 'public/**', 'node_modules/**'],
   },
@@ -12,7 +12,7 @@ module.exports = [
     files: ['**/*.js'],
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'commonjs',
+      sourceType: 'module',
       globals: {
         ...globals.node,
         ...globals.browser,
@@ -24,7 +24,6 @@ module.exports = [
     rules: {
       ...eslint.configs.recommended.rules,
       'no-console': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
       'prettier/prettier': [
         'error',
         {
@@ -39,7 +38,7 @@ module.exports = [
     files: ['**/*.ts'],
     languageOptions: {
       ecmaVersion: 'latest',
-      sourceType: 'commonjs',
+      sourceType: 'module',
       globals: {
         ...globals.node,
         ...globals.browser,
@@ -50,7 +49,6 @@ module.exports = [
     },
     rules: {
       'no-console': 'off',
-      '@typescript-eslint/no-require-imports': 'off',
       'prettier/prettier': [
         'error',
         {

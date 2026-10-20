@@ -11,7 +11,7 @@ const extension = '.mp3';
 const getAudioFilePath = (
   messageText: string,
   directory = os.tmpdir(),
-  uniqueSuffix = crypto.randomUUID(),
+  uniqueSuffix: string = crypto.randomUUID(),
 ) => {
   let safeText = String(messageText)
     .normalize('NFKC')
@@ -26,7 +26,7 @@ const getAudioFilePath = (
   }
 
   const suffix = `-${uniqueSuffix}${extension}`;
-  const safeCharacters = [];
+  const safeCharacters: string[] = [];
 
   for (const character of safeText) {
     const nextName = `${safeCharacters.join('')}${character}${suffix}`;
@@ -87,7 +87,7 @@ const removeAudioFile = async (filePath: string): Promise<void> => {
 
 const getVoiceoverStream = (filePath: string) => fs.createReadStream(filePath);
 
-module.exports = {
+export default {
   downloadAudioFile,
   getAudioFilePath,
   removeAudioFile,

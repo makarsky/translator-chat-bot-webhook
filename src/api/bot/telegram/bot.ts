@@ -1,6 +1,6 @@
 import { Api, InputFile } from 'grammy';
-import type { TelegramBotClient, TelegramUpdate } from './types';
-const dispatchUpdate = require('./updateDispatcher');
+import type { TelegramBotClient, TelegramUpdate } from './types.js';
+import dispatchUpdate from './updateDispatcher.js';
 
 let telegram: { api: Api; client: TelegramBotClient } | undefined;
 
@@ -50,4 +50,4 @@ const getTelegram = () => {
 const processUpdate = (update: TelegramUpdate) =>
   dispatchUpdate(update, getTelegram().client);
 
-module.exports = { getTelegram, processUpdate };
+export default { getTelegram, processUpdate };

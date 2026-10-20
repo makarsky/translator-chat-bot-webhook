@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const googleAnalytics = require('../src/analytics/google-ga4');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import googleAnalytics from '../src/analytics/google-ga4.js';
 
 const originalMeasurementId = process.env.GA4_MEASUREMENT_ID;
 const originalApiSecret = process.env.GA4_API_SECRET;

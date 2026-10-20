@@ -2,4 +2,4 @@ const actions = {
   voiceover: 'voiceover',
 };
 
-module.exports = actions;
+export default actions;

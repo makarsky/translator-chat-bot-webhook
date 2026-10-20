@@ -1,15 +1,15 @@
-const { translate } = require('google-translate-api-x');
-const Sentry = require('@sentry/node');
-const tursoClient = require('../../tursoClient');
-const availableLanguages = require('../../availableLanguages');
-const googleTextToSpeechLanguages = require('../../googleTextToSpeechLanguages');
-const googleAnalytics = require('../../../analytics/google-ga4');
-const inlineButtonsBuilder = require('./inlineButtonsBuilder');
-const botCommands = require('./botCommands');
-const i18n = require('../../../localization/i18n');
-const filterDuplicatesCallback = require('../../../common/helper/filterDuplicatesCallback');
-const translationActions = require('./translationActions');
-import type { TelegramBotClient, TelegramMessage } from './types';
+import { translate } from 'google-translate-api-x';
+import * as Sentry from '@sentry/node';
+import tursoClient from '../../tursoClient.js';
+import availableLanguages from '../../availableLanguages.js';
+import googleTextToSpeechLanguages from '../../googleTextToSpeechLanguages.js';
+import googleAnalytics from '../../../analytics/google-ga4.js';
+import inlineButtonsBuilder from './inlineButtonsBuilder.js';
+import botCommands from './botCommands.js';
+import i18n from '../../../localization/i18n.js';
+import filterDuplicatesCallback from '../../../common/helper/filterDuplicatesCallback.js';
+import translationActions from './translationActions.js';
+import type { TelegramBotClient, TelegramMessage } from './types.js';
 
 const maxTextToSpeechLength = 200;
 
@@ -102,7 +102,7 @@ const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
       chatSettings.updatedAtTimestamp = Date.now();
       await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
-      const actionButtons = [];
+      const actionButtons: { text: string; callback_data: string }[] = [];
       const audioLanguageCode =
         googleTextToSpeechLanguages.findByCode(targetLanguageCode);
 
@@ -166,4 +166,4 @@ const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
   }
 };
 
-module.exports = { process };
+export default { process };

@@ -155,4 +155,4 @@ const findByCode = (code: string): string | null => {
   return null;
 };
 
-module.exports = { findByCode };
+export default { findByCode };

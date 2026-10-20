@@ -20,7 +20,7 @@ const actions = {
   translate: 'translate',
   listen: 'listen',
   about: 'about',
-};
+} as const;
 
 const requestTimeoutMs = 1500;
 
@@ -68,7 +68,7 @@ const event = async (
   }
 };
 
-module.exports = {
+export default {
   actions,
   event,
 };

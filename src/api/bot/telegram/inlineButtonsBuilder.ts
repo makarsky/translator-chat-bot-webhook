@@ -1,5 +1,5 @@
 const maxNumberOfInlineButtons = 8;
-import type { TelegramLanguageOption } from './types';
+import type { TelegramLanguageOption } from './types.js';
 
 const buildLanguageCodeReplyOptions = (
   languages: TelegramLanguageOption[],
@@ -16,7 +16,7 @@ const buildLanguageCodeReplyOptions = (
     }),
   }));
 
-  const pagination = [];
+  const pagination: { text: string; callback_data: string }[] = [];
 
   // https://core.telegram.org/bots#pressing-buttons
   if (nextPage !== undefined) {
@@ -47,5 +47,4 @@ const buildLanguageCodeReplyOptions = (
   };
 };
 
-module.exports = { buildLanguageCodeReplyOptions };
-module.exports.maxNumberOfInlineButtons = maxNumberOfInlineButtons;
+export default { buildLanguageCodeReplyOptions, maxNumberOfInlineButtons };

@@ -1,14 +1,17 @@
-require('dotenv').config();
+import 'dotenv/config';
+import path from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { createClient } from '@libsql/client';
+import Umzug from 'umzug';
+import { createTursoMigrationStorage } from '../src/api/tursoMigrationStorage.js';
 
-const path = require('path');
-const { createClient } = require('@libsql/client');
-const Umzug = require('umzug');
-const {
-  createTursoMigrationStorage,
-} = require('../src/api/tursoMigrationStorage');
+type MigrationCommand = 'up' | 'down' | 'pending' | 'executed';
+
+const isMigrationCommand = (command: string): command is MigrationCommand =>
+  ['up', 'down', 'pending', 'executed'].includes(command);
 
 const runMigrations = async (command = 'up') => {
-  if (!['up', 'down', 'pending', 'executed'].includes(command)) {
+  if (!isMigrationCommand(command)) {
     throw new Error('Command must be one of: up, down, pending, executed');
   }
 
@@ -31,6 +34,8 @@ const runMigrations = async (command = 'up') => {
         path: migrationsDirectory,
         pattern: /^\d+[\w-]+\.js$/,
         params: [client],
+        customResolver: async (migrationPath) =>
+          import(pathToFileURL(migrationPath).href),
       },
       storage,
       logging: console.log,
@@ -44,11 +49,14 @@ const runMigrations = async (command = 'up') => {
   }
 };
 
-if (require.main === module) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+) {
   runMigrations(process.argv[2]).catch((error) => {
     console.error('Turso migration command failed', error);
     process.exitCode = 1;
   });
 }
 
-module.exports = { runMigrations };
+export { runMigrations };

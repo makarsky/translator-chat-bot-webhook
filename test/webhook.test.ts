@@ -1,11 +1,11 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { once } = require('events');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { once } from 'node:events';
+import app from '../index.js';
+import telegramBot from '../src/api/bot/telegram/bot.js';
 
 process.env.TELEGRAM_WEBHOOK_SECRET = 'test_secret';
 
-const app = require('../index');
-const telegramBot = require('../src/api/bot/telegram/bot');
 const originalProcessUpdate = telegramBot.processUpdate;
 let server;
 let baseUrl;

@@ -1,11 +1,13 @@
-const path = require('path');
-const fs = require('fs');
-const { defineConfig } = require('vite');
+import path from 'node:path';
+import fs from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { defineConfig } from 'vite';
 
-const rootPath = path.resolve(__dirname, 'views');
-const outputPath = path.resolve(__dirname, 'public');
+const configDirectory = path.dirname(fileURLToPath(import.meta.url));
+const rootPath = path.resolve(configDirectory, 'views');
+const outputPath = path.resolve(configDirectory, 'public');
 
-module.exports = defineConfig(async () => {
+export default defineConfig(async () => {
   const { default: tailwindcss } = await import('@tailwindcss/vite');
 
   return {

@@ -1,12 +1,12 @@
-const commandProcessor = require('./commandProcessor');
-const messageProcessor = require('./messageProcessor');
-const callbackQueryProcessor = require('./callbackQueryProcessor');
+import commandProcessor from './commandProcessor.js';
+import messageProcessor from './messageProcessor.js';
+import callbackQueryProcessor from './callbackQueryProcessor.js';
 import type {
   TelegramBotClient,
   TelegramCallbackQuery,
   TelegramMessage,
   TelegramUpdate,
-} from './types';
+} from './types.js';
 
 interface UpdateProcessors {
   commandProcessor: {
@@ -49,4 +49,4 @@ const dispatchUpdate = async (
   }
 };
 
-module.exports = dispatchUpdate;
+export default dispatchUpdate;

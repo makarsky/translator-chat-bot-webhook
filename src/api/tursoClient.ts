@@ -1,4 +1,4 @@
-const { createClient } = require('@libsql/client');
+import { createClient } from '@libsql/client';
 
 interface ChatSettings extends Record<string, unknown> {
   lastUsedLanguageCodes?: string[];
@@ -7,9 +7,9 @@ interface ChatSettings extends Record<string, unknown> {
 }
 
 interface Database {
-  execute(statement: string | { sql: string; args?: unknown[] }): Promise<{
-    rows: Array<{ settings?: unknown }>;
-  }>;
+  execute(statement: string | { sql: string; args?: string[] }): Promise<{
+    rows?: Array<{ settings?: unknown }>;
+  } | void>;
 }
 
 const createChatSettingsStore = (database: Database) => ({
@@ -18,7 +18,7 @@ const createChatSettingsStore = (database: Database) => ({
       sql: 'SELECT settings FROM chat_settings WHERE chat_id = ?',
       args: [String(chatId)],
     });
-    const settings = result.rows[0] && result.rows[0].settings;
+    const settings = result?.rows?.[0]?.settings;
 
     return settings ? (JSON.parse(String(settings)) as ChatSettings) : {};
   },
@@ -51,8 +51,16 @@ const getClient = () => {
 };
 
 const store = createChatSettingsStore({
-  execute: (statement: string | { sql: string; args?: unknown[] }) =>
-    getClient().execute(statement),
+  execute: async (statement) => {
+    const result =
+      typeof statement === 'string'
+        ? await getClient().execute(statement)
+        : await getClient().execute(statement.sql, statement.args);
+    return {
+      rows: result.rows as unknown as Array<{ settings?: unknown }>,
+    };
+  },
 });
 
-module.exports = { ...store, createChatSettingsStore };
+export { createChatSettingsStore };
+export default { ...store, createChatSettingsStore };

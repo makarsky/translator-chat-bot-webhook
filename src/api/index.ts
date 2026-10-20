@@ -1,8 +1,8 @@
 import express, { type Request, type Response } from 'express';
 import * as crypto from 'node:crypto';
 import * as Sentry from '@sentry/node';
+import telegramBot from './bot/telegram/bot.js';
 
-const telegramBot = require('./bot/telegram/bot');
 const router = express.Router();
 
 interface TelegramUpdate {
@@ -47,7 +47,7 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    await telegramBot.processUpdate(update);
+    await telegramBot.processUpdate(update as TelegramUpdate);
     res.sendStatus(200);
   } catch (error) {
     console.error('Telegram webhook update failed', error);
@@ -58,4 +58,4 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
   }
 });
 
-module.exports = router;
+export default router;

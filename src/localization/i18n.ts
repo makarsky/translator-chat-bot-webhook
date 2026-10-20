@@ -73,5 +73,4 @@ const t = (
   );
 };
 
-module.exports = localizations;
-module.exports.t = t;
+export default { ...localizations, t };

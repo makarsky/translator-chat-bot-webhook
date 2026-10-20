@@ -1,12 +1,12 @@
-const Sentry = require('@sentry/node');
-const botCommands = require('./botCommands');
-const i18n = require('../../../localization/i18n');
+import * as Sentry from '@sentry/node';
+import botCommands from './botCommands.js';
+import i18n from '../../../localization/i18n.js';
 import type {
   TelegramBotClient,
   TelegramCommand,
   TelegramCommandMessage,
   TelegramMessage,
-} from './types';
+} from './types.js';
 
 const typedBotCommands: TelegramCommand[] = botCommands;
 
@@ -42,7 +42,11 @@ const setCommandMenu = async (bot: TelegramBotClient) =>
           .filter((command) => !command.hidden)
           .map((command) => ({
             command: command.regExp.toString().replace(/\W+/g, ''), // converts regExp to string
-            description: i18n[command.description][languageCode],
+            description: (
+              i18n[
+                command.description as Exclude<keyof typeof i18n, 't'>
+              ] as Record<string, string>
+            )[languageCode],
           })),
         languageCode === 'en'
           ? undefined
@@ -53,4 +57,4 @@ const setCommandMenu = async (bot: TelegramBotClient) =>
     ),
   );
 
-module.exports = { process, setCommandMenu };
+export default { process, setCommandMenu };

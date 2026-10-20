@@ -1,21 +1,23 @@
-const { languages: mappedLanguages } = require('google-translate-api-x');
-const path = require('path');
-const Sentry = require('@sentry/node');
-const googleTTS = require('google-tts-api');
-const inlineButtonsBuilder = require('./inlineButtonsBuilder');
-const googleAnalytics = require('../../../analytics/google-ga4');
-const i18n = require('../../../localization/i18n');
-const availableLanguages = require('../../availableLanguages');
-const tursoClient = require('../../tursoClient');
-const voiceoverService = require('../../voiceoverService');
-const filterDuplicatesCallback = require('../../../common/helper/filterDuplicatesCallback');
-const translationActions = require('./translationActions');
+import { languages as mappedLanguages } from 'google-translate-api-x';
+import path from 'node:path';
+import * as Sentry from '@sentry/node';
+import googleTTS from 'google-tts-api';
+import inlineButtonsBuilder from './inlineButtonsBuilder.js';
+import googleAnalytics from '../../../analytics/google-ga4.js';
+import i18n from '../../../localization/i18n.js';
+import availableLanguages from '../../availableLanguages.js';
+import tursoClient from '../../tursoClient.js';
+import voiceoverService from '../../voiceoverService.js';
+import filterDuplicatesCallback from '../../../common/helper/filterDuplicatesCallback.js';
+import translationActions from './translationActions.js';
 import type {
   TelegramBotClient,
   TelegramCallbackData,
   TelegramCallbackMessage,
   TelegramCallbackQuery,
-} from './types';
+} from './types.js';
+
+const mappedLanguagesByCode = mappedLanguages as Record<string, string>;
 
 const processTargetLanguageCodeCallbackQuery = async (
   bot: TelegramBotClient,
@@ -36,7 +38,7 @@ const processTargetLanguageCodeCallbackQuery = async (
 
   await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
-  const targetLanguage = mappedLanguages[data.targetLanguageCode];
+  const targetLanguage = mappedLanguagesByCode[data.targetLanguageCode];
 
   await googleAnalytics.event(
     message.from.id,
@@ -85,7 +87,10 @@ const processPageCallbackQuery = async (
   if (data.page === -1) {
     languages = lastUsedLanguageCodes
       .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-      .map((code: string) => ({ code, language: mappedLanguages[code] }));
+      .map((code: string) => ({
+        code,
+        language: mappedLanguagesByCode[code],
+      }));
     nextPage = 0;
   } else if (data.page === 0) {
     nextPage = data.page + 1;
@@ -253,4 +258,4 @@ const process = async (
   );
 };
 
-module.exports = { process };
+export default { process };

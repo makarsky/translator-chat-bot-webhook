@@ -1,14 +1,16 @@
-const { languages: mappedLanguages } = require('google-translate-api-x');
-const googleAnalytics = require('../../../analytics/google-ga4');
-const tursoClient = require('../../tursoClient');
-const inlineButtonsBuilder = require('./inlineButtonsBuilder');
-const i18n = require('../../../localization/i18n');
-const availableLanguages = require('../../availableLanguages');
+import { languages as mappedLanguages } from 'google-translate-api-x';
+import googleAnalytics from '../../../analytics/google-ga4.js';
+import tursoClient from '../../tursoClient.js';
+import inlineButtonsBuilder from './inlineButtonsBuilder.js';
+import i18n from '../../../localization/i18n.js';
+import availableLanguages from '../../availableLanguages.js';
 import type {
   TelegramBotClient,
   TelegramCommand,
   TelegramCommandMessage,
-} from './types';
+} from './types.js';
+
+const mappedLanguagesByCode = mappedLanguages as Record<string, string>;
 
 const setTargetLanguageHandler = async function (
   this: TelegramBotClient,
@@ -34,7 +36,10 @@ const setTargetLanguageHandler = async function (
     lastUsedLanguageCodes.length > 0
       ? lastUsedLanguageCodes
           .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-          .map((code: string) => ({ code, language: mappedLanguages[code] }))
+          .map((code: string) => ({
+            code,
+            language: mappedLanguagesByCode[code],
+          }))
       : availableLanguages.slice(
           0,
           inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
@@ -95,4 +100,4 @@ const botCommands: TelegramCommand[] = [
   },
 ];
 
-module.exports = botCommands;
+export default botCommands;

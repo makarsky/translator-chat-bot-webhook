@@ -1,15 +1,15 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const fs = require('fs/promises');
-const os = require('os');
-const path = require('path');
-const voiceoverService = require('../src/api/voiceoverService');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
+import voiceoverService from '../src/api/voiceoverService.js';
 
 test('audio filenames sanitize path characters and reserved names', () => {
   const filePath = voiceoverService.getAudioFilePath(
     '../CON: <audio>?*',
     os.tmpdir(),
-    'unique',
+    '00000000-0000-0000-0000-000000000001',
   );
   const fileName: string = path.basename(filePath);
 
@@ -31,12 +31,12 @@ test('audio filenames are shortened to the byte limit and remain unique', () => 
   const firstPath = voiceoverService.getAudioFilePath(
     messageText,
     os.tmpdir(),
-    'first',
+    '00000000-0000-0000-0000-000000000001',
   );
   const secondPath = voiceoverService.getAudioFilePath(
     messageText,
     os.tmpdir(),
-    'second',
+    '00000000-0000-0000-0000-000000000002',
   );
   const firstName = path.basename(firstPath);
 

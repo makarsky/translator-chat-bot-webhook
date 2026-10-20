@@ -1,4 +1,4 @@
-const { languages } = require('google-translate-api-x');
+import { languages } from 'google-translate-api-x';
 
 interface LanguageOption {
   code: string;
@@ -6,13 +6,14 @@ interface LanguageOption {
 }
 
 const availableLanguages: LanguageOption[] = [];
+const languagesByCode = languages as Record<string, string>;
 
 Object.keys(languages).forEach((key) => {
   if (key !== 'auto' && key !== 'isSupported' && key !== 'getCode') {
-    availableLanguages.push({ code: key, language: languages[key] });
+    availableLanguages.push({ code: key, language: languagesByCode[key] });
   }
 });
 
 availableLanguages.sort((a, b) => a.language.localeCompare(b.language));
 
-module.exports = availableLanguages;
+export default availableLanguages;

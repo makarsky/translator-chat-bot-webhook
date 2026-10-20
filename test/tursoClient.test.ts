@@ -1,6 +1,6 @@
-const test = require('node:test');
-const assert = require('node:assert/strict');
-const { createChatSettingsStore } = require('../src/api/tursoClient');
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { createChatSettingsStore } from '../src/api/tursoClient.js';
 
 test('missing chat settings return an empty object', async () => {
   const database = {

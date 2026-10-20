@@ -1,8 +1,10 @@
 import express from 'express';
 import fs from 'node:fs';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import * as Sentry from '@sentry/node';
 import dotenv from 'dotenv';
+import api from './src/api/index.js';
 
 dotenv.config();
 
@@ -18,7 +20,6 @@ if (process.env.SENTRY_PUBLIC_KEY && process.env.SENTRY_PROJECT_ID) {
 }
 
 const app = express();
-const api = require('./src/api');
 const publicPath = path.join(process.cwd(), 'public');
 const sourcePath = path.join(process.cwd(), 'views');
 const indexPath = fs.existsSync(path.join(publicPath, 'index.html'))
@@ -34,11 +35,14 @@ app.get('/', (_req, res) => {
   res.sendFile(path.join(indexPath, 'index.html'));
 });
 
-if (require.main === module) {
+if (
+  process.argv[1] &&
+  import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href
+) {
   const port = process.env.PORT || 3000;
   app.listen(port, () => {
     console.log(`Example app listening on port ${port}!`);
   });
 }
 
-module.exports = app;
+export default app;

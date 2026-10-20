@@ -4,4 +4,4 @@ const filterDuplicatesCallback = (
   values: (string | undefined)[],
 ) => value && index === values.indexOf(value);
 
-module.exports = filterDuplicatesCallback;
+export default filterDuplicatesCallback;
