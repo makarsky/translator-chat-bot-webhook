@@ -1,163 +1,139 @@
 <!DOCTYPE html>
-<html lang="en">
-
+<html lang="en" class="scroll-smooth [scroll-padding-top:88px] motion-reduce:scroll-auto">
 <head>
    <meta charset="UTF-8">
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-   <title>Translator Chat Bot (Telegram)</title>
+   <meta name="theme-color" content="#f7f9f8">
+   <title>Translator Chat Bot | Translate in Telegram</title>
    <meta name="author" content="Igor Makarsy">
-   <meta name="description" content="Translator chat bot for Telegram built with node.js and express.js">
-   <meta name="keywords" content="translator,chat-bot, telegram">
+   <meta name="description" content="Translate messages in Telegram with a free chat bot supporting 105 languages, voice playback, and smart language switching.">
+   <meta name="keywords" content="translator, chat bot, Telegram">
+   <link rel="preconnect" href="https://fonts.googleapis.com">
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
    <link rel="stylesheet" href="/css/styles.css">
-   <link href="https://afeld.github.io/emoji-css/emoji.css" rel="stylesheet">
-   <script src="https://cdn.tailwindcss.com"></script>
    <script type="module" src="/js/main.js"></script>
 </head>
+<body class="min-h-screen bg-background font-sans text-base leading-[1.65] text-foreground antialiased">
+   <a class="fixed left-2 top-2 z-50 -translate-y-[150%] rounded-md bg-foreground px-3.5 py-2.5 text-white transition-transform focus:translate-y-0 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" href="#main">Skip to content</a>
+   <header class="sticky top-0 z-40 border-b border-border/85 bg-background/95 backdrop-blur-md">
+      <div class="mx-auto flex min-h-16 w-[calc(100%_-_48px)] max-w-[1120px] items-center justify-between gap-5 md:min-h-[72px]">
+         <a class="flex items-center gap-2.5 no-underline" href="/" aria-label="Translator Chat Bot home">
+            <span class="grid size-[34px] place-items-center rounded-[9px] bg-primary font-display text-[19px] font-bold text-white max-[480px]:size-[31px]">T</span>
+            <span class="font-display text-[15px] font-bold leading-[1.15] max-[480px]:text-[13px]">Translator <span class="font-medium text-muted">Chat Bot</span></span>
+         </a>
+         <nav class="flex items-center gap-2 max-[480px]:gap-0.5" aria-label="Main navigation">
+            <a class="inline-flex min-h-[38px] items-center justify-center rounded-md px-3.5 text-[13px] font-semibold text-foreground transition-colors hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent max-[480px]:hidden" href="https://github.com/makarsky/translator-chat-bot-webhook" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a class="telegram inline-flex min-h-[38px] items-center justify-center gap-2.5 rounded-md bg-primary px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent max-[480px]:px-2 max-[480px]:text-[11px]" href="https://t.me/ProTranslatorBot" target="_blank" rel="noopener noreferrer">Open in Telegram <span aria-hidden="true">↗</span></a>
+         </nav>
+      </div>
+   </header>
 
-<body class="font-sans leading-normal tracking-normal">
-
-   <nav class="bg-blue-900 p-2 mt-0 w-full">
-      <div class="container mx-auto flex flex-wrap items-center">
-         <div class="flex w-full justify-center text-white font-extrabold">
-            <span class="no-underline text-white">
-               <span class="text-2xl pl-2"><i class="em em-robot_face" aria-role="presentation"
-                     aria-label="ROBOT FACE"></i> Translator Chat Bot</span>
-            </span>
+   <main id="main">
+      <section class="mx-auto grid w-[calc(100%_-_48px)] max-w-[1120px] grid-cols-1 items-center gap-[30px] py-[38px] md:min-h-[480px] md:grid-cols-[1.12fr_.88fr] md:gap-[clamp(40px,7vw,92px)] md:py-[54px] md:pb-16 max-[760px]:py-12 max-[480px]:w-[calc(100%_-_32px)]" aria-labelledby="hero-title">
+         <div class="motion-safe:animate-enter">
+            <p class="mb-0 flex items-center gap-[9px] text-xs font-bold uppercase text-primary"><span class="size-2 shrink-0 rounded-full bg-accent shadow-[0_0_0_3px_var(--color-accent-soft)]" aria-hidden="true"></span> Your pocket-sized language partner</p>
+            <h1 class="mb-4 mt-5 max-w-[560px] font-display text-[clamp(40px,5vw,62px)] font-bold leading-[1.04]" id="hero-title">Translator Chat Bot</h1>
+            <p class="mb-[26px] max-w-[500px] text-base leading-[1.6] text-muted md:text-lg">A simpler way to understand every message. Translate chats into any of 105 languages, right inside Telegram.</p>
+            <div class="flex flex-wrap gap-2.5">
+               <a class="telegram inline-flex min-h-11 flex-1 items-center justify-center gap-2.5 rounded-md bg-primary px-[18px] text-[13px] font-semibold text-white transition hover:-translate-y-px hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex-none sm:text-sm" href="https://t.me/ProTranslatorBot" target="_blank" rel="noopener noreferrer">Try the bot <span aria-hidden="true">↗</span></a>
+               <a class="inline-flex min-h-11 flex-1 items-center justify-center gap-2.5 rounded-md border border-border bg-surface px-3 text-[13px] font-semibold text-foreground transition hover:-translate-y-px hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent sm:flex-none sm:px-[18px] sm:text-sm" href="#features">Explore features <span aria-hidden="true">↓</span></a>
+            </div>
+            <div class="mt-6 flex items-center gap-3.5 text-[13px] text-muted" aria-label="Bot details">
+               <span><strong>105</strong> languages</span>
+               <span class="h-[15px] w-px bg-border" aria-hidden="true"></span>
+               <span><strong>Free</strong> to use</span>
+            </div>
          </div>
-         <div class="flex w-full pt-2 sm:pt-0 content-center justify-between md:w-1/2 px-12 md:pr-24">
-            <ul id="menu" class="list-reset flex justify-between flex-1 md:flex-none items-center">
-               <li class="mr-3">
-                  <a class="inline-block text-white hover:text-gray-100 hover:underline py-2 px-4"
-                     href="https://github.com/makarsky/translator-chat-bot-webhook" target="_blank">GitHub</a>
-               </li>
-               <li class="mr-3">
-                  <a class="telegram inline-block text-white hover:text-gray-100 hover:underline py-2 px-4"
-                     href="https://t.me/ProTranslatorBot" target="_blank">Try it</a>
-               </li>
-            </ul>
+         <figure class="motion-safe:animate-enter overflow-hidden rounded-card border border-border bg-surface p-4 shadow-[0_18px_50px_rgb(29_54_46_/_8%)] md:[animation-delay:100ms]">
+            <figcaption class="mb-3 flex min-h-[30px] items-center justify-between">
+               <span class="inline-flex items-center gap-2 text-xs font-bold"><span class="size-[7px] rounded-full bg-accent shadow-[0_0_0_3px_var(--color-accent-soft)]" aria-hidden="true"></span> Quick look</span>
+               <span class="text-xs text-muted">60 sec</span>
+            </figcaption>
+            <video class="block aspect-[16/10] w-full rounded-md bg-[#17221f] object-cover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" src="https://dl.dropboxusercontent.com/s/xxy4f26xnh4bswa/YouCut_20220120_182714780.mp4" controls playsinline preload="metadata" aria-label="Translator Chat Bot demo video"></video>
+            <p class="mb-0 mt-3 px-0.5 text-xs text-muted">See a translation happen in a Telegram chat.</p>
+         </figure>
+      </section>
+
+      <section class="border-y border-border bg-tint" aria-label="At a glance">
+         <div class="mx-auto grid w-[calc(100%_-_48px)] max-w-[1120px] grid-cols-3 py-[18px] md:py-[23px] max-[480px]:w-[calc(100%_-_32px)]">
+            <p class="mb-0 flex min-h-12 flex-col justify-center gap-0.5 border-l border-border pl-0 first:border-0 md:px-[22px] md:first:pl-0"><strong class="font-display text-xl leading-tight">105</strong><span class="max-w-[145px] text-xs leading-[1.4] text-muted md:max-w-none">languages to translate</span></p>
+            <p class="mb-0 flex min-h-12 flex-col justify-center gap-0.5 border-l border-border pl-2 md:px-[22px]"><strong class="font-display text-xl leading-tight">7</strong><span class="max-w-[145px] text-xs leading-[1.4] text-muted md:max-w-none">recent languages, close at hand</span></p>
+            <p class="mb-0 flex min-h-12 flex-col justify-center gap-0.5 border-l border-border pl-2 md:px-[22px]"><strong class="font-display text-xl leading-tight">0</strong><span class="max-w-[145px] text-xs leading-[1.4] text-muted md:max-w-none">cost to get started</span></p>
          </div>
-      </div>
-   </nav>
+      </section>
 
-   <div class="container mx-auto flex flex-col items-center mt-6 md:mt-12">
-      <h1 class="font-bold text-3xl my-4">Demo in 60 seconds</h1>
-      <video class="w-full sm:w-4/6 md:w-1/2 lg:w-1/3 mx-auto"
-         src="https://dl.dropboxusercontent.com/s/xxy4f26xnh4bswa/YouCut_20220120_182714780.mp4" controls></video>
-   </div>
+      <section class="mx-auto w-[calc(100%_-_48px)] max-w-[1120px] py-[72px] md:py-24 md:pb-[104px] max-[480px]:w-[calc(100%_-_32px)]" id="features" aria-labelledby="features-title">
+         <header class="mx-auto mb-[26px] max-w-[620px] text-left md:mb-[38px] md:text-center">
+            <p class="mb-0 flex items-center gap-[9px] text-xs font-bold uppercase text-primary md:justify-center">Made for the flow of conversation</p>
+            <h2 class="mb-2.5 mt-3 font-display text-[clamp(30px,4vw,42px)] font-bold leading-[1.15]" id="features-title">The little details make it feel easy</h2>
+            <p class="mb-0 text-muted">Useful translation tools, with fewer steps between you and the conversation</p>
+         </header>
 
-   <div class="container mx-auto flex flex-col md:flex-row items-center mt-12">
-      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start pb-12 md:pb-0 px-6 sm:px-12 md:pl-12">
-         <h1 class="font-bold text-3xl my-4">Taking translations to a whole new level</h1>
-         <p class="leading-normal mb-4">This is a Telegram chat bot and it can translate your messages to any of 105
-            languages <i class="em em-partying_face" aria-role="presentation"
-               aria-label="FACE WITH PARTY HORN AND PARTY HAT"></i></p>
-         <p class="leading-normal mb-4">The nice pagination feature was made to make your experience better and faster.
-            7 recently used
-            languages
-            are always listed on the first page.
-         </p>
-         <p class="leading-normal mb-4">Tech stack: Node.js, Express, JavaScript, Turso
-            Telegram API, Translate API, Text-To-Speech API, Vercel
-            <i class="em em-grinning" aria-role="presentation" aria-label="GRINNING FACE"></i>
-         </p>
-         <p class="leading-normal mb-4">
-            <a class="telegram bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
-               href="https://t.me/ProTranslatorBot" target="_blank">Try it</a>
-         </p>
-         <p class="leading-normal mb-4">
-            If you don't have the Telegram app, you can download it using one the following app stores:
-         </p>
-         <p class="leading-normal mb-4">
-            <a class="bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
-               href="https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=en&gl=US"
-               target="_blank">Google Play</a>
-            <a class="bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
-               href="https://apps.apple.com/us/app/telegram-messenger/id686449807" target="_blank">AppStore</a>
-         </p>
-      </div>
-      <div class="w-full lg:w-1/2 lg:pt-6">
-         <div class="w-full lg:w-4/5 flex justify-center">
-            <img src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png" alt="">
+         <article class="grid grid-cols-1 items-center gap-[22px] border-t border-border py-[30px] md:grid-cols-[.85fr_1.15fr] md:gap-[clamp(38px,8vw,112px)] md:py-[38px]">
+            <div>
+               <span class="text-[11px] font-bold uppercase text-accent">01 / FIND YOUR LANGUAGE</span>
+               <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Your recent languages, right up front</h3>
+               <p class="mb-0 max-w-[440px] text-muted">Translate messages into any of 105 languages. Seven recently used languages stay on the first page, so your regular conversations are always quick to reach.</p>
+            </div>
+            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:min-h-[250px]">
+               <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png" alt="Translator bot showing language options in Telegram" loading="lazy">
+            </figure>
+         </article>
+
+         <article class="grid grid-cols-1 items-center gap-[22px] border-t border-border py-[30px] md:grid-cols-[.85fr_1.15fr] md:gap-[clamp(38px,8vw,112px)] md:py-[38px]">
+            <div class="md:order-2">
+               <span class="text-[11px] font-bold uppercase text-accent">02 / LISTEN ALONG</span>
+               <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Read it or hear it</h3>
+               <p class="mb-0 max-w-[440px] text-muted">Forward a message from another chat to translate it, then use text-to-speech for translations up to 200 characters. Speech availability depends on the language.</p>
+            </div>
+            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:order-1 md:min-h-[250px]">
+               <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="A translated Telegram message with text-to-speech controls" loading="lazy">
+            </figure>
+         </article>
+
+         <article class="grid grid-cols-1 items-center gap-[22px] border-t border-border py-[30px] md:grid-cols-[.85fr_1.15fr] md:gap-[clamp(38px,8vw,112px)] md:py-[38px]">
+            <div>
+               <span class="text-[11px] font-bold uppercase text-accent">03 / LESS TAPPING</span>
+               <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Automatic switching between two languages</h3>
+               <p class="mb-0 max-w-[440px] text-muted">No need to manually swap your two most recently used languages. The bot switches between them as you translate.</p>
+            </div>
+            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:min-h-[250px]">
+               <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/y0fpd4y5t93hkhv/3.png" alt="Telegram chat demonstrating automatic switching between recent languages" loading="lazy">
+            </figure>
+         </article>
+      </section>
+
+      <section class="bg-[#183b34] text-white" aria-labelledby="closing-title">
+         <div class="mx-auto grid w-[calc(100%_-_48px)] max-w-[1120px] grid-cols-1 items-center gap-[30px] py-14 md:grid-cols-[1fr_minmax(240px,.65fr)] md:gap-[70px] md:py-[72px] max-[480px]:w-[calc(100%_-_32px)]">
+            <div>
+               <p class="mb-0 flex items-center gap-[9px] text-xs font-bold uppercase text-[#9ed7c4]">Ready when you are</p>
+               <h2 class="mb-2.5 mt-3.5 max-w-[500px] font-display text-[clamp(30px,4vw,42px)] font-bold leading-[1.15]" id="closing-title">Keep the conversation going.</h2>
+               <p class="mb-[22px] text-[#c8d7d2]">Open the bot in Telegram and send a message to get started.</p>
+               <a class="telegram inline-flex min-h-11 items-center justify-center gap-2.5 rounded-md bg-white px-[18px] text-sm font-semibold text-[#183b34] transition hover:-translate-y-px hover:bg-[#e7f1ed] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" href="https://t.me/ProTranslatorBot" target="_blank" rel="noopener noreferrer">Try Translator Chat Bot <span aria-hidden="true">↗</span></a>
+               <div class="mt-[18px] flex flex-wrap items-center gap-3.5 text-xs text-[#c8d7d2]" aria-label="Download Telegram">
+                  <span>Need Telegram?</span>
+                  <a class="text-white underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" href="https://play.google.com/store/apps/details?id=org.telegram.messenger&hl=en&gl=US" target="_blank" rel="noopener noreferrer">Google Play</a>
+                  <a class="text-white underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" href="https://apps.apple.com/us/app/telegram-messenger/id686449807" target="_blank" rel="noopener noreferrer">App Store</a>
+               </div>
+            </div>
+            <aside class="flex items-start gap-3.5 rounded-card border border-white/20 bg-white/[7%] p-5" aria-label="Translation note">
+               <span class="grid size-6 shrink-0 place-items-center rounded-full border border-[#9ed7c4] font-display text-[13px] font-bold text-[#9ed7c4]" aria-hidden="true">i</span>
+               <p class="mb-0 text-[13px] leading-[1.7] text-[#d6e1dd]">The bot uses an unofficial Google Translate API, so translations may differ from translate.google.com. Translation isn't perfect, but it can help you keep a conversation moving.</p>
+            </aside>
          </div>
-      </div>
+      </section>
+   </main>
 
-   </div>
-
-   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
-      <div class="hidden md:block w-full lg:w-1/2 lg:py-6 text-center">
-         <div class="w-full mx-auto">
-            <img src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="">
-         </div>
+   <footer class="bg-[#102e29] text-[#d6e1dd]">
+      <div class="mx-auto flex min-h-[76px] w-[calc(100%_-_48px)] max-w-[1120px] flex-wrap items-center justify-between gap-5 py-3.5 max-[480px]:w-[calc(100%_-_32px)]">
+         <a class="flex items-center gap-2.5 no-underline" href="/">
+            <span class="grid size-[34px] place-items-center rounded-[9px] bg-[#245448] font-display text-[19px] font-bold text-white max-[480px]:size-[31px]">T</span>
+            <span class="font-display text-[15px] font-bold leading-[1.15] text-white max-[480px]:text-[13px]">Translator <span class="font-medium text-white">Chat Bot</span></span>
+         </a>
+         <p class="mb-0 text-xs">Built by <a class="text-white underline-offset-4 hover:decoration-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" href="https://github.com/makarsky" target="_blank" rel="noopener noreferrer">Ihar Makarski</a></p>
+         <p class="mb-0 basis-full border-t border-white/15 pt-3 text-[11px] text-[#aebfba]">Tech stack: Node.js, Express, TypeScript, Turso, Telegram API, Translate API, Text-to-Speech API and Vercel.</p>
       </div>
-      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
-         <h1 class="font-bold text-3xl my-4">Awesome features</h1>
-         <p class="leading-normal mb-4">You can forward messages from other chats and use text-to-speech (up to 200
-            characters; not for all languages).</p>
-         <p class="leading-normal mb-4">It is completely free!
-            <i class="em em-scream_cat"></i>
-         </p>
-      </div>
-      <div class="md:hidden w-full lg:w-1/2 lg:py-6 pt-12">
-         <div class="w-full flex justify-center">
-            <img src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="">
-         </div>
-      </div>
-
-   </div>
-
-   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
-      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
-         <h1 class="font-bold text-3xl my-4">Attention to details</h1>
-         <p class="leading-normal mb-4">You don't have to manually switch between 2 recently used languages. The chat
-            bot does it for
-            you automagically <i class="em em-tophat" aria-role="presentation" aria-label="TOP HAT"></i></p>
-      </div>
-      <div class="md:block w-full lg:w-1/2 lg:py-6">
-         <div class="w-full flex justify-center">
-            <img src="https://dl.dropboxusercontent.com/s/y0fpd4y5t93hkhv/3.png" alt="">
-         </div>
-      </div>
-
-   </div>
-
-   <div class="container mx-auto flex flex-col md:flex-row items-center my-12">
-      <div class="hidden md:block w-full lg:w-1/2 lg:py-6 text-center">
-         <div class="w-full mx-auto">
-            <img src="https://dl.dropboxusercontent.com/s/le0bkzxzh3q4ipv/4.2.png" alt="">
-         </div>
-      </div>
-      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
-         <h1 class="font-bold text-3xl my-4">4 interface languages</h1>
-         <p class="leading-normal mb-4">The bot has only 4 interface languages at the moment. You can become a
-            contributor by adding a new interface language!</p>
-      </div>
-      <div class="md:hidden w-full lg:w-1/2 lg:py-6 pt-12">
-         <div class="w-full flex justify-center">
-            <img src="https://dl.dropboxusercontent.com/s/le0bkzxzh3q4ipv/4.2.png" alt="">
-         </div>
-      </div>
-
-   </div>
-
-   <div class="container mx-auto flex flex-col md:flex-row items-center my-12 justify-center">
-      <div class="flex flex-col w-full lg:w-1/2 justify-center items-start px-6 sm:px-12 md:pr-24">
-         <p class="leading-normal mb-4">The bot uses the unofficial google translate API <i class="em em-neutral_face"
-               aria-role="presentation" aria-label="NEUTRAL FACE"></i>, so sometimes a translated text may differ from
-            translate.google.com. Generally speaking, translation isn't perfect, but it is ok <i class="em em-ok_hand"
-               aria-role="presentation" aria-label="OK HAND SIGN"></i></p>
-         <p class="leading-normal mb-4">Enough words, here's the chat bot link:</p>
-         <a class="telegram bg-transparent hover:bg-blue-900 text-blue-900 hover:text-white rounded shadow hover:shadow-lg py-2 px-4 border border-blue-900 hover:border-transparent"
-            href="https://t.me/ProTranslatorBot" target="_blank">Try it</a>
-      </div>
-   </div>
-
-   <div id="footer" class="py-6 md:py-6 px-6 bg-blue-900">
-      <p class="text-center text-white">Made with <i class="em em-hammer_and_pick" aria-role="presentation"
-            aria-label=""></i> by <a href="https://github.com/makarsky" target="_blank">Igor
-            Makarsky</a></p>
-   </div>
-
+   </footer>
 </body>
-
 </html>

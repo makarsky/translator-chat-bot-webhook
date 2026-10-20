@@ -1,45 +1,29 @@
-.navbar {
-        margin-bottom: 0;
-}
+@import "tailwindcss";
 
-body {
-        background: #020A1B;
-        color: #ffffff;
-        font-family: 'Merriweather', sans-serif;
-}
-h1,
-h2 {
-        font-weight: bold;
-}
-p {
-        font-size: 16px;
-        color: #ffffff;
-}
+@theme {
+        --color-background: #f7f9f8;
+        --color-surface: #ffffff;
+        --color-foreground: #182321;
+        --color-muted: #687571;
+        --color-border: #dce5e1;
+        --color-primary: #176b58;
+        --color-primary-hover: #105744;
+        --color-accent: #e76f51;
+        --color-accent-soft: #fff0eb;
+        --color-tint: #edf4f1;
+        --font-sans: 'DM Sans', 'Avenir Next', sans-serif;
+        --font-display: 'Space Grotesk', 'Avenir Next', sans-serif;
+        --radius-card: 10px;
+        --animate-enter: enter 600ms both;
 
-
-.jumbotron {
-        background: #0048CD;
-        color: white;
-        text-align: center;
-}
-.jumbotron p {
-        color: white;
-        font-size: 26px;
-}
-
-.btn-primary {
-        color: #fff;
-        text-color: #000000;
-        border-color: white;
-        margin-bottom: 5px;
-}
-
-img, video, audio {
-        margin-top: 20px;
-        max-width: 80%;
-}
-
-div.caption {
-        float: left;
-        clear: both;
+        @keyframes enter {
+                from {
+                        opacity: 0;
+                        transform: translateY(12px);
+                }
+                to {
+                        opacity: 1;
+                        transform: translateY(0);
+                }
+        }
 }
