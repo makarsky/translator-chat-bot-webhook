@@ -5,6 +5,14 @@
    <meta name="viewport" content="width=device-width, initial-scale=1.0">
    <meta name="theme-color" content="#f7f9f8">
    <title>Translator Chat Bot | Translate in Telegram</title>
+   <script>
+      try {
+         const theme = localStorage.getItem('translator-chat-bot-theme');
+         if (theme === 'light' || theme === 'dark') {
+            document.documentElement.dataset.theme = theme;
+         }
+      } catch {}
+   </script>
    <meta name="author" content="Igor Makarsy">
    <meta name="description" content="Translate messages in Telegram with a free chat bot supporting 105 languages, voice playback, and smart language switching.">
    <meta name="keywords" content="translator, chat bot, Telegram">
@@ -24,6 +32,10 @@
             <span class="font-display text-[15px] font-bold leading-[1.15] max-[480px]:text-[13px]">Translator <span class="font-medium text-muted">Chat Bot</span></span>
          </a>
          <nav class="flex items-center gap-2 max-[480px]:gap-0.5" aria-label="Main navigation">
+            <button class="inline-flex size-10 shrink-0 items-center justify-center rounded-md border border-border bg-surface text-lg leading-none text-foreground transition-colors hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" id="theme-toggle" type="button" aria-label="Dark mode" aria-pressed="false" title="Dark mode">
+               <span data-theme-icon="moon" aria-hidden="true">&#9790;</span>
+               <span class="hidden" data-theme-icon="sun" aria-hidden="true">&#9728;</span>
+            </button>
             <a class="inline-flex min-h-[38px] items-center justify-center rounded-md px-3.5 text-[13px] font-semibold text-foreground transition-colors hover:bg-tint focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent max-[480px]:hidden" href="https://github.com/makarsky/translator-chat-bot-webhook" target="_blank" rel="noopener noreferrer">GitHub</a>
             <a class="telegram inline-flex min-h-[38px] items-center justify-center gap-2.5 rounded-md bg-primary px-3.5 text-[13px] font-semibold text-white transition-colors hover:bg-primary-hover focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent max-[480px]:px-2 max-[480px]:text-[11px]" href="https://t.me/ProTranslatorBot" target="_blank" rel="noopener noreferrer">Open in Telegram <span aria-hidden="true">↗</span></a>
          </nav>
@@ -77,7 +89,7 @@
                <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Your recent languages, right up front</h3>
                <p class="mb-0 max-w-[440px] text-muted">Translate messages into any of 105 languages. Seven recently used languages stay on the first page, so your regular conversations are always quick to reach.</p>
             </div>
-            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:min-h-[250px]">
+            <figure class="feature-visual m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border p-[18px] md:min-h-[250px]">
                <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png" alt="Translator bot showing language options in Telegram" loading="lazy">
             </figure>
          </article>
@@ -88,7 +100,7 @@
                <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Read it or hear it</h3>
                <p class="mb-0 max-w-[440px] text-muted">Forward a message from another chat to translate it, then use text-to-speech for translations up to 200 characters. Speech availability depends on the language.</p>
             </div>
-            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:order-1 md:min-h-[250px]">
+            <figure class="feature-visual m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border p-[18px] md:order-1 md:min-h-[250px]">
                <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/gc9gkz1ysbr05lc/2.png" alt="A translated Telegram message with text-to-speech controls" loading="lazy">
             </figure>
          </article>
@@ -99,7 +111,7 @@
                <h3 class="mb-2.5 mt-3 font-display text-2xl font-bold leading-[1.22] md:text-[27px]">Automatic switching between two languages</h3>
                <p class="mb-0 max-w-[440px] text-muted">No need to manually swap your two most recently used languages. The bot switches between them as you translate.</p>
             </div>
-            <figure class="m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border bg-[linear-gradient(145deg,#edf4f1,#f5f8f6_65%,#fff0eb)] p-[18px] md:min-h-[250px]">
+            <figure class="feature-visual m-0 grid min-h-[210px] place-items-center overflow-hidden rounded-card border border-border p-[18px] md:min-h-[250px]">
                <img class="block max-h-[340px] w-full max-w-[430px] object-contain" src="https://dl.dropboxusercontent.com/s/y0fpd4y5t93hkhv/3.png" alt="Telegram chat demonstrating automatic switching between recent languages" loading="lazy">
             </figure>
          </article>
