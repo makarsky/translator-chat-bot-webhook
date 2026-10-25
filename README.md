@@ -26,7 +26,7 @@ Tech stack:
 
 1. clone the project
 1. `npm ci`
-1. Copy `.env.example` to `.env` and set the Telegram token, Turso URL/auth token, webhook secret, and webhook URL.
+1. Copy `.env.example` to `.env` and set the Telegram bot token, Turso URL/auth token, webhook secret, and webhook URL.
 1. Run `npm run migrate:turso` to apply pending database migrations.
 1. To undo the last migration, run `npm run migrate:turso -- down`. The initial migration's `down` drops `chat_settings` and deletes its data; use it only when that is intentional. Inspect status with `npm run migrate:turso -- pending` or `npm run migrate:turso -- executed`.
 1. Run `npm run build` to compile the server and build the frontend, then `npm start` to serve them locally. Use `npm run dev` to run the TypeScript server directly during development.
@@ -34,7 +34,7 @@ Tech stack:
 
 ### Test Telegram webhooks locally
 
-1. Create a dedicated test bot with @BotFather and set its token as `TOKEN` in `.env`. Do not use the production bot token; webhook setup changes that bot's registered webhook.
+1. Create a dedicated test bot with @BotFather and set its token as `TELEGRAM_BOT_TOKEN` in `.env`. Do not use the production bot token; webhook setup changes that bot's registered webhook.
 1. Set `NGROK_AUTH_TOKEN` and `NGROK_DOMAIN` in `.env` using the token and the domain from your ngrok dashboard.
 1. Run `npm run dev:telegram`. This starts the Express watcher and an HTTPS ngrok tunnel to the configured `PORT` (default `3000`); copy the printed URL.
 1. Set `WEBAPP_URL` in `.env` to the printed URL followed by `/api/v1/webhook`, then run `npm run setup:telegram` to register it explicitly with the test bot.

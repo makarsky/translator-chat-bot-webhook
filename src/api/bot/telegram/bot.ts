@@ -6,12 +6,12 @@ import dispatchUpdate from './updateDispatcher.js';
 let telegram: { api: Api; client: TelegramBotClient } | undefined;
 
 const getTelegram = () => {
-  if (!process.env.TOKEN) {
-    throw new Error('TOKEN environment variable is required');
+  if (!process.env.TELEGRAM_BOT_TOKEN) {
+    throw new Error('TELEGRAM_BOT_TOKEN environment variable is required');
   }
 
   if (!telegram) {
-    const api = new Api(process.env.TOKEN);
+    const api = new Api(process.env.TELEGRAM_BOT_TOKEN);
     const client = createTelegramClient(api);
 
     telegram = { api, client };
