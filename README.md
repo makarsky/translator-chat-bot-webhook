@@ -1,5 +1,9 @@
 # Translator Chat Bot for Telegram
 
+[Landing page LIVE DEMO](https://translator-chat-bot.vercel.app/)
+
+[Telegram Bot LIVE DEMO](t.me/ProTranslatorBot?start=github)
+
 <img src="https://dl.dropboxusercontent.com/s/w678m7husoevwt8/1.png">
 
 Tech stack:
@@ -44,7 +48,7 @@ While the tunnel is active, the local app's other routes are publicly reachable 
 
 ## Deploy to Vercel
 
-Connect the repository to Vercel and configure the required environment variables. Vercel serves the frontend from `public/` and runs the Express API from the TypeScript server entry point.
+Connect the repository to Vercel and configure the required environment variables. Framework Preset: Express. Vercel serves the frontend from `public/` and runs the Express API from the TypeScript server entry point.
 
 ## Useful links
 
