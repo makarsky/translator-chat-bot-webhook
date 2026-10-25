@@ -1,5 +1,5 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm ci",
-  "buildCommand": "npm run build"
+  "buildCommand": "npm run build && if [ \"$VERCEL_ENV\" = \"production\" ]; then node dist/scripts/migrate-turso.js && npm run setup:telegram; fi"
 }
