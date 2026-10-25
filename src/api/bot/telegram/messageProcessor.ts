@@ -7,11 +7,15 @@ import googleAnalytics from '../../../analytics/google-ga4.js';
 import inlineButtonsBuilder from './inlineButtonsBuilder.js';
 import botCommands from './botCommands.js';
 import i18n from '../../../localization/i18n.js';
-import filterDuplicatesCallback from '../../../common/helper/filterDuplicatesCallback.js';
 import translationActions from './translationActions.js';
+import {
+  buildVoiceoverActionButton,
+  isCommandMessage,
+  pickSticker,
+  selectTargetLanguage,
+  updateRecentLanguageCodes,
+} from './messagePolicy.js';
 import type { TelegramBotClient, TelegramMessage } from './types.js';
-
-const maxTextToSpeechLength = 200;
 
 const animulzStickers = [
   'CAACAgEAAxkBAAIG8WHoMt88uW2Hoqt45qJ62WwZJNpvAAJ6EAACmX-IAqU-3GtbhUNmIwQ',
@@ -22,27 +26,34 @@ const animulzStickers = [
 const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
   const messageText = message.text;
   if (messageText === undefined) {
-    await bot.sendSticker(
-      message.chat.id,
-      animulzStickers[Math.floor(Math.random() * animulzStickers.length)],
+    const sticker = pickSticker(
+      animulzStickers,
+      Math.floor(Math.random() * animulzStickers.length),
     );
+
+    if (sticker) {
+      await bot.sendSticker(message.chat.id, sticker);
+    }
     return;
   }
 
-  if (
-    botCommands.some((command: { regExp: RegExp }) =>
-      messageText.match(command.regExp),
-    )
-  ) {
+  if (isCommandMessage(messageText, botCommands)) {
     return;
   }
 
   Sentry.setUser({ id: message.chat.id });
 
-  const requestTargetLanguage = async (text: string) => {
+  const sendTargetLanguagePrompt = async (
+    reason: 'missing' | 'unsuitable',
+  ) => {
     await bot.sendMessage(
       message.chat.id,
-      text,
+      i18n.t(
+        reason === 'missing'
+          ? 'chooseTargetLanguage'
+          : 'unsuitableTargetLanguage',
+        message.from.language_code,
+      ),
       inlineButtonsBuilder.buildLanguageCodeReplyOptions(
         availableLanguages.slice(
           0,
@@ -64,60 +75,52 @@ const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
       );
       lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
 
-      if (lastUsedLanguageCodes.length === 0) {
-        await requestTargetLanguage(
-          i18n.t('chooseTargetLanguage', message.from.language_code),
-        );
+      let targetLanguageSelection =
+        selectTargetLanguage(lastUsedLanguageCodes);
+
+      if (targetLanguageSelection.kind === 'prompt') {
+        await sendTargetLanguagePrompt(targetLanguageSelection.reason);
         return;
       }
 
-      let targetLanguageCode = lastUsedLanguageCodes[0];
+      let targetLanguageCode = targetLanguageSelection.targetLanguageCode;
       let translation = await translate(messageText, {
         to: targetLanguageCode,
       });
 
-      if (translation.from.language.iso === lastUsedLanguageCodes[0]) {
-        if (lastUsedLanguageCodes.length === 1) {
-          await requestTargetLanguage(
-            i18n.t('unsuitableTargetLanguage', message.from.language_code),
-          );
-          return;
-        }
-        targetLanguageCode = lastUsedLanguageCodes[1];
+      targetLanguageSelection = selectTargetLanguage(
+        lastUsedLanguageCodes,
+        translation.from.language.iso,
+      );
+
+      if (targetLanguageSelection.kind === 'prompt') {
+        await sendTargetLanguagePrompt(targetLanguageSelection.reason);
+        return;
+      }
+
+      if (targetLanguageSelection.targetLanguageCode !== targetLanguageCode) {
+        targetLanguageCode = targetLanguageSelection.targetLanguageCode;
         translation = await translate(messageText, { to: targetLanguageCode });
       }
 
-      lastUsedLanguageCodes.unshift(
+      lastUsedLanguageCodes = updateRecentLanguageCodes(
+        lastUsedLanguageCodes,
         targetLanguageCode,
         translation.from.language.iso,
-      );
-      lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
-        filterDuplicatesCallback,
-      );
-      lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
-        0,
         inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
       );
       chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
       chatSettings.updatedAtTimestamp = Date.now();
       await tursoClient.setChatSettingsById(message.chat.id, chatSettings);
 
-      const actionButtons: { text: string; callback_data: string }[] = [];
       const audioLanguageCode =
         googleTextToSpeechLanguages.findByCode(targetLanguageCode);
-
-      if (
-        translation.text.length < maxTextToSpeechLength &&
-        audioLanguageCode
-      ) {
-        actionButtons.push({
-          text: i18n.t('listen', message.from.language_code),
-          callback_data: JSON.stringify({
-            translationAction: translationActions.voiceover,
-            audioLanguageCode,
-          }),
-        });
-      }
+      const voiceoverActionButton = buildVoiceoverActionButton(
+        translation.text,
+        audioLanguageCode,
+        i18n.t('listen', message.from.language_code),
+        translationActions.voiceover,
+      );
 
       if (translation.from.text.didYouMean) {
         await bot.sendMessage(
@@ -137,10 +140,10 @@ const process = async (message: TelegramMessage, bot: TelegramBotClient) => {
       await bot.sendMessage(
         message.chat.id,
         translation.text,
-        actionButtons.length > 0
+        voiceoverActionButton
           ? {
               reply_markup: {
-                inline_keyboard: [actionButtons],
+                inline_keyboard: [[voiceoverActionButton]],
               },
             }
           : {},

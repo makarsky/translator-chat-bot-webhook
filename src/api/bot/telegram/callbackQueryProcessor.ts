@@ -8,8 +8,11 @@ import i18n from '../../../localization/i18n.js';
 import availableLanguages from '../../availableLanguages.js';
 import tursoClient from '../../tursoClient.js';
 import voiceoverService from '../../voiceoverService.js';
-import filterDuplicatesCallback from '../../../common/helper/filterDuplicatesCallback.js';
 import translationActions from './translationActions.js';
+import {
+  appendLanguageSelection,
+  buildPageState,
+} from './callbackPolicy.js';
 import type {
   TelegramBotClient,
   TelegramCallbackData,
@@ -25,13 +28,9 @@ const processTargetLanguageCodeCallbackQuery = async (
   message: TelegramCallbackMessage,
 ) => {
   const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
-  let lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
-  lastUsedLanguageCodes.unshift(data.targetLanguageCode);
-  lastUsedLanguageCodes = lastUsedLanguageCodes.filter(
-    filterDuplicatesCallback,
-  );
-  lastUsedLanguageCodes = lastUsedLanguageCodes.slice(
-    0,
+  const lastUsedLanguageCodes = appendLanguageSelection(
+    chatSettings.lastUsedLanguageCodes || [],
+    data.targetLanguageCode,
     inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
   );
   chatSettings.lastUsedLanguageCodes = lastUsedLanguageCodes;
@@ -75,35 +74,16 @@ const processPageCallbackQuery = async (
   message: TelegramCallbackMessage,
 ) => {
   const itemsPerPage = inlineButtonsBuilder.maxNumberOfInlineButtons - 2;
-  const pageCount = Math.ceil(availableLanguages.length / itemsPerPage);
-  const offset = data.page * itemsPerPage;
-  let languages = availableLanguages.slice(offset, offset + itemsPerPage);
-  let previousPage;
-  let nextPage;
 
   const chatSettings = await tursoClient.getChatSettingsById(message.chat.id);
-  const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
-
-  if (data.page === -1) {
-    languages = lastUsedLanguageCodes
-      .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-      .map((code: string) => ({
-        code,
-        language: mappedLanguagesByCode[code],
-      }));
-    nextPage = 0;
-  } else if (data.page === 0) {
-    nextPage = data.page + 1;
-
-    if (lastUsedLanguageCodes.length > 0) {
-      previousPage = data.page - 1;
-    }
-  } else if (data.page + 1 === pageCount) {
-    previousPage = data.page - 1;
-  } else {
-    nextPage = data.page + 1;
-    previousPage = data.page - 1;
-  }
+  const { languages, previousPage, nextPage } = buildPageState({
+    page: data.page,
+    availableLanguages,
+    lastUsedLanguageCodes: chatSettings.lastUsedLanguageCodes || [],
+    mappedLanguagesByCode,
+    itemsPerPage,
+    maxLanguages: inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
+  });
 
   try {
     await bot.editMessageText(i18n.t('chooseTargetLanguage', data.userLocale), {

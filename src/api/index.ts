@@ -1,7 +1,7 @@
 import express, { type Request, type Response } from 'express';
-import * as crypto from 'node:crypto';
 import * as Sentry from '@sentry/node';
 import telegramBot from './bot/telegram/bot.js';
+import { isValidTelegramUpdate, verifyWebhookSecret } from './webhookPolicy.js';
 
 const router = express.Router();
 
@@ -25,23 +25,14 @@ router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
     return;
   }
 
-  const expectedBuffer = Buffer.from(expectedSecret);
-  const receivedBuffer = Buffer.from(receivedSecret);
-  if (
-    expectedBuffer.length !== receivedBuffer.length ||
-    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
-  ) {
+  if (!verifyWebhookSecret(expectedSecret, receivedSecret)) {
     res.sendStatus(401);
     return;
   }
 
   const update = req.body as Partial<TelegramUpdate> | null;
-  if (
-    !update ||
-    typeof update !== 'object' ||
-    Array.isArray(update) ||
-    !Number.isSafeInteger(update.update_id)
-  ) {
+
+  if (!isValidTelegramUpdate(update)) {
     res.status(400).json({ error: 'Invalid Telegram update' });
     return;
   }

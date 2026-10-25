@@ -4,6 +4,7 @@ import tursoClient from '../../tursoClient.js';
 import inlineButtonsBuilder from './inlineButtonsBuilder.js';
 import i18n from '../../../localization/i18n.js';
 import availableLanguages from '../../availableLanguages.js';
+import { buildTargetLanguageMenu } from './commandPolicy.js';
 import type {
   TelegramBotClient,
   TelegramCommand,
@@ -32,18 +33,12 @@ const setTargetLanguageHandler = async function (
   }
 
   const lastUsedLanguageCodes = chatSettings.lastUsedLanguageCodes || [];
-  const languages =
-    lastUsedLanguageCodes.length > 0
-      ? lastUsedLanguageCodes
-          .slice(0, inlineButtonsBuilder.maxNumberOfInlineButtons - 1)
-          .map((code: string) => ({
-            code,
-            language: mappedLanguagesByCode[code],
-          }))
-      : availableLanguages.slice(
-          0,
-          inlineButtonsBuilder.maxNumberOfInlineButtons - 2,
-        );
+  const languages = buildTargetLanguageMenu({
+    lastUsedLanguageCodes,
+    availableLanguages,
+    mappedLanguagesByCode,
+    maxLanguages: inlineButtonsBuilder.maxNumberOfInlineButtons - 1,
+  });
 
   await this.sendMessage(
     message.chat.id,

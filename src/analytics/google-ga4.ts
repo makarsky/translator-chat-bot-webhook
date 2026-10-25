@@ -1,49 +1,22 @@
-const eventNames = {
-  start: 'translator_start',
-  setTargetLanguage: 'translator_set_target_language',
-  targetLanguageSelected: 'translator_target_language_selected',
-  translate: 'translator_translate',
-  listen: 'translator_listen',
-  about: 'translator_about',
-};
-
-const labelParameters: Partial<Record<AnalyticsAction, string>> = {
-  start: 'start_source',
-  targetLanguageSelected: 'target_language',
-  translate: 'target_language',
-};
-
-const actions = {
-  start: 'start',
-  setTargetLanguage: 'setTargetLanguage',
-  targetLanguageSelected: 'targetLanguageSelected',
-  translate: 'translate',
-  listen: 'listen',
-  about: 'about',
-} as const;
+import {
+  actions,
+  buildAnalyticsRequest,
+  isAnalyticsEnabled,
+  type AnalyticsAction,
+} from './googleGa4Policy.js';
 
 const requestTimeoutMs = 1500;
-
-type AnalyticsAction = keyof typeof actions;
 
 const event = async (
   userId: number | string,
   action: AnalyticsAction,
   label?: string,
 ): Promise<void> => {
-  const enabled = process.env.GA4_ENABLED === 'true';
   const measurementId = process.env.GA4_MEASUREMENT_ID;
   const apiSecret = process.env.GA4_API_SECRET;
-  const eventName = eventNames[action];
 
-  if (!enabled || !measurementId || !apiSecret || !eventName) {
+  if (!isAnalyticsEnabled(process.env) || !measurementId || !apiSecret) {
     return;
-  }
-
-  const parameters: Record<string, string> = {};
-  const labelParameter = labelParameters[action];
-  if (labelParameter && label !== undefined) {
-    parameters[labelParameter] = label;
   }
 
   try {
@@ -53,10 +26,7 @@ const event = async (
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         signal: AbortSignal.timeout(requestTimeoutMs),
-        body: JSON.stringify({
-          client_id: String(userId),
-          events: [{ name: eventName, params: parameters }],
-        }),
+        body: JSON.stringify(buildAnalyticsRequest(userId, action, label)),
       },
     );
 

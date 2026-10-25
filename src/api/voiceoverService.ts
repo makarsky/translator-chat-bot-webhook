@@ -1,44 +1,15 @@
 import * as crypto from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
-import path from 'node:path';
 import https from 'node:https';
 import { pipeline } from 'node:stream';
-
-const maxFileNameBytes = 240;
-const extension = '.mp3';
+import { buildAudioFilePath } from './voiceoverFilePolicy.js';
 
 const getAudioFilePath = (
   messageText: string,
   directory = os.tmpdir(),
   uniqueSuffix: string = crypto.randomUUID(),
-) => {
-  let safeText = String(messageText)
-    .normalize('NFKC')
-    .replace(/[<>:"/\\|?*]/g, '_')
-    .replace(/\p{Cc}/gu, '_')
-    .replace(/\s+/g, '_')
-    .replace(/[. ]+$/g, '')
-    .replace(/^\.+/g, '');
-
-  if (!safeText || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])$/i.test(safeText)) {
-    safeText = 'voiceover';
-  }
-
-  const suffix = `-${uniqueSuffix}${extension}`;
-  const safeCharacters: string[] = [];
-
-  for (const character of safeText) {
-    const nextName = `${safeCharacters.join('')}${character}${suffix}`;
-    if (Buffer.byteLength(nextName, 'utf8') > maxFileNameBytes) {
-      break;
-    }
-    safeCharacters.push(character);
-  }
-
-  const fileName = `${safeCharacters.join('') || 'voiceover'}${suffix}`;
-  return path.join(directory, fileName);
-};
+) => buildAudioFilePath(messageText, directory, uniqueSuffix);
 
 const downloadAudioFile = async (
   audioUrl: string,

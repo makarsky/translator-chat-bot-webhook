@@ -1,16 +1,33 @@
 import { createClient } from '@libsql/client';
-
-interface ChatSettings extends Record<string, unknown> {
-  lastUsedLanguageCodes?: string[];
-  source?: string;
-  updatedAtTimestamp?: number;
-}
+import {
+  buildChatSettingsUpsert,
+  parseChatSettings,
+  type ChatSettings,
+} from './chatSettingsPolicy.js';
 
 interface Database {
   execute(statement: string | { sql: string; args?: string[] }): Promise<{
     rows?: Array<{ settings?: unknown }>;
   } | void>;
 }
+
+export const buildTursoClientConfig = (
+  env: NodeJS.ProcessEnv = process.env,
+): { url: string; authToken: string } => {
+  const url = env.TURSO_DATABASE_URL;
+  const authToken = env.TURSO_AUTH_TOKEN;
+
+  if (!url || !authToken) {
+    throw new Error('Turso database environment variables are required');
+  }
+
+  return { url, authToken };
+};
+
+export const createTursoClient = (
+  env: NodeJS.ProcessEnv = process.env,
+  clientFactory: typeof createClient = createClient,
+) => clientFactory(buildTursoClientConfig(env));
 
 const createChatSettingsStore = (database: Database) => ({
   async getChatSettingsById(chatId: number | string): Promise<ChatSettings> {
@@ -20,16 +37,11 @@ const createChatSettingsStore = (database: Database) => ({
     });
     const settings = result?.rows?.[0]?.settings;
 
-    return settings ? (JSON.parse(String(settings)) as ChatSettings) : {};
+    return parseChatSettings(settings);
   },
 
   async setChatSettingsById(chatId: number | string, settings: ChatSettings) {
-    await database.execute({
-      sql: `INSERT INTO chat_settings (chat_id, settings)
-        VALUES (?, ?)
-        ON CONFLICT(chat_id) DO UPDATE SET settings = excluded.settings`,
-      args: [String(chatId), JSON.stringify(settings)],
-    });
+    await database.execute(buildChatSettingsUpsert(chatId, settings));
   },
 });
 
@@ -37,14 +49,7 @@ let client: ReturnType<typeof createClient> | undefined;
 
 const getClient = () => {
   if (!client) {
-    if (!process.env.TURSO_DATABASE_URL || !process.env.TURSO_AUTH_TOKEN) {
-      throw new Error('Turso database environment variables are required');
-    }
-
-    client = createClient({
-      url: process.env.TURSO_DATABASE_URL,
-      authToken: process.env.TURSO_AUTH_TOKEN,
-    });
+    client = createTursoClient();
   }
 
   return client;
