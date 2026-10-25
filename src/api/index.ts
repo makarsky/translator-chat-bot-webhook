@@ -17,7 +17,7 @@ router.get('/', (_req: Request, res: Response) => {
 });
 
 router.post('/webhook', async (req: Request, res: Response): Promise<void> => {
-  const expectedSecret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const expectedSecret = process.env.WEBHOOK_SECRET;
   const receivedSecret = req.get('x-telegram-bot-api-secret-token') || '';
 
   if (!expectedSecret) {

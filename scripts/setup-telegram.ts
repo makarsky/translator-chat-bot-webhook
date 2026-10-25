@@ -3,16 +3,16 @@ import commandProcessor from '../src/api/bot/telegram/commandProcessor.js';
 import telegramBot from '../src/api/bot/telegram/bot.js';
 
 const setupTelegram = async () => {
-  const webhookUrl = process.env.WEBAPP_URL;
-  const secret = process.env.TELEGRAM_WEBHOOK_SECRET;
+  const webhookUrl = process.env.WEBHOOK_URL;
+  const secret = process.env.WEBHOOK_SECRET;
 
   if (!webhookUrl || !webhookUrl.startsWith('https://')) {
-    throw new Error('WEBAPP_URL must be the final HTTPS webhook URL');
+    throw new Error('WEBHOOK_URL must be the final HTTPS webhook URL');
   }
 
   if (!secret || !/^[A-Za-z0-9_-]{1,256}$/.test(secret)) {
     throw new Error(
-      'TELEGRAM_WEBHOOK_SECRET must contain 1-256 letters, numbers, underscores, or hyphens',
+      'WEBHOOK_SECRET must contain 1-256 letters, numbers, underscores, or hyphens',
     );
   }
 

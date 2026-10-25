@@ -37,7 +37,7 @@ Tech stack:
 1. Create a dedicated test bot with @BotFather and set its token as `TELEGRAM_BOT_TOKEN` in `.env`. Do not use the production bot token; webhook setup changes that bot's registered webhook.
 1. Set `NGROK_AUTH_TOKEN` and `NGROK_DOMAIN` in `.env` using the token and the domain from your ngrok dashboard.
 1. Run `npm run dev:telegram`. This starts the Express watcher and an HTTPS ngrok tunnel to the configured `PORT` (default `3000`); copy the printed URL.
-1. Set `WEBAPP_URL` in `.env` to the printed URL followed by `/api/v1/webhook`, then run `npm run setup:telegram` to register it explicitly with the test bot.
+1. Set `WEBHOOK_URL` in `.env` to the printed URL followed by `/api/v1/webhook`, then run `npm run setup:telegram` to register it explicitly with the test bot.
 1. Send a message to the test bot and confirm it reaches the local app.
 
 While the tunnel is active, the local app's other routes are publicly reachable too; the Telegram webhook secret does not make those routes private. `npm run dev:telegram` never registers a webhook.

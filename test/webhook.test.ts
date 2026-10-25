@@ -4,7 +4,7 @@ import { once } from 'node:events';
 import app from '../index.js';
 import telegramBot from '../src/api/bot/telegram/bot.js';
 
-process.env.TELEGRAM_WEBHOOK_SECRET = 'test_secret';
+process.env.WEBHOOK_SECRET = 'test_secret';
 
 const originalProcessUpdate = telegramBot.processUpdate;
 let server;
